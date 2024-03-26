@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  face_recognition:
+    image: facerec_service
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./faces:/root/faces
+
+  whoisapi:
+    image: whoisapi
+    ports:
+      - "32787:8080"
+
+  seq_log:
+    image: datalust/seq:latest
+    environment:
+      ACCEPT_EULA: Y
+    ports:
+      - "5341:80"
