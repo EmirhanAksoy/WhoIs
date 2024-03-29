@@ -6,7 +6,6 @@ using WhoIsAPI.Contracts.Responses;
 const string sharedDirectoryPath = "shared_data";
 const string faceRecognizeServiceKey = "facerec_service";
 
-
 var builder = WebApplication.CreateBuilder(args);
 
 string faceRecognizeServiceBaseURL = builder.Configuration.GetSection("FaceRecogService").Value ?? string.Empty;
@@ -169,8 +168,6 @@ app.MapGet("/get-file-list", () =>
 })
 .WithName("Get File List")
 .WithOpenApi();
-
-
 
 
 app.Run();

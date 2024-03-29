@@ -1,8 +1,24 @@
 version: '3.8'
 
 services:
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server
+    ports:
+      - "1433:1433"
+    environment:
+      SA_PASSWORD: "Admin123*_!"  
+      ACCEPT_EULA: "Y"
+  
+  database_seed:
+    depends_on : [sqlserver]
+    build: 
+     context : Database/
+     dockerfile: Dockerfile
+
   face_recognition:
-    image: facerec_service
+    image: face_service
+    depends_on : [database_seed]
     ports:
       - "8080:8080"
     volumes:
@@ -10,6 +26,7 @@ services:
 
   whoisapi:
     image: whoisapi
+    depends_on : [database_seed]
     ports:
       - "32787:8080"
 
@@ -19,3 +36,4 @@ services:
       ACCEPT_EULA: Y
     ports:
       - "5341:80"
+
