@@ -13,7 +13,7 @@ services:
   database_seed:
     depends_on : [sqlserver]
     build: 
-     context : Database/
+     context : ./WhoIs.DBSeed/Database/
      dockerfile: Dockerfile
 
   face_recognition:
@@ -29,6 +29,8 @@ services:
     depends_on : [database_seed]
     ports:
       - "32787:8080"
+    volumes:
+      - ./faces:/app/faces
 
   seq_log:
     image: datalust/seq:latest

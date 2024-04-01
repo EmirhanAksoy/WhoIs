@@ -3,7 +3,7 @@ using Serilog;
 using WhoIsAPI.Contracts.Requests;
 using WhoIsAPI.Contracts.Responses;
 
-const string sharedDirectoryPath = "shared_data";
+const string facesFolder = "./faces";
 const string faceRecognizeServiceKey = "facerec_service";
 
 var builder = WebApplication.CreateBuilder(args);
@@ -34,12 +34,6 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 
-if (!Directory.Exists(sharedDirectoryPath))
-{
-    Directory.CreateDirectory(sharedDirectoryPath);
-    Console.WriteLine($"Directory '{sharedDirectoryPath}' created.");
-}
-
 
 app.MapPost("/register-known-face", async ([FromForm] UploadFileRequest uploadFileRequest, 
     [FromServices] IHttpClientFactory httpClientFactory,
@@ -52,7 +46,7 @@ app.MapPost("/register-known-face", async ([FromForm] UploadFileRequest uploadFi
         throw new ArgumentException("Person cannot be nul or empty");
 
     string imageName = Guid.NewGuid().ToString() + Path.GetExtension(uploadFileRequest.File.FileName);
-    string imagePath = Path.Combine(sharedDirectoryPath, imageName);
+    string imagePath = Path.Combine(facesFolder, imageName);
 
     try
     {
@@ -111,7 +105,7 @@ app.MapPost("/identity-faces", async ([FromForm] IdentityFacesOnImageRequest ide
         throw new ArgumentException("File cannot be nul or empty");
 
     string imageName = Guid.NewGuid().ToString() + Path.GetExtension(identityFacesOnImageRequest.File.FileName);
-    string imagePath = Path.Combine(sharedDirectoryPath, imageName);
+    string imagePath = Path.Combine(facesFolder, imageName);
 
     try
     {
@@ -162,9 +156,9 @@ app.MapPost("/identity-faces", async ([FromForm] IdentityFacesOnImageRequest ide
 .WithOpenApi();
 
 
-app.MapGet("/get-file-list", () =>
+app.MapGet("/get-face-paths", () =>
 {
-    return Directory.GetFiles(sharedDirectoryPath);
+    return Directory.GetFiles(facesFolder);
 })
 .WithName("Get File List")
 .WithOpenApi();
