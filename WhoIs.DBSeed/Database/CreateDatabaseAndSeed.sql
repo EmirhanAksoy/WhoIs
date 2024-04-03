@@ -28,6 +28,7 @@ CREATE TABLE Images (
     Id INT IDENTITY(1,1) PRIMARY KEY,
     UniqueId NVARCHAR(255) UNIQUE NOT NULL,
     ImagePath VARCHAR(MAX) NOT NULL,
+    IsProcessed BIT DEFAULT(0)
     IsActive BIT DEFAULT(1)
 );
 
