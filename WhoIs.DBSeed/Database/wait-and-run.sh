@@ -2,7 +2,7 @@
 
 # Wait for SQL Server to be ready
 echo "Waiting for SQL Server to be ready..."
-for i in {1..100};
+for i in {1..50};
 do
     /opt/mssql-tools/bin/sqlcmd -S sqlserver -U sa -P Admin123*_! -Q "SELECT 1" > /dev/null 2>&1
     if [ $? -eq 0 ]

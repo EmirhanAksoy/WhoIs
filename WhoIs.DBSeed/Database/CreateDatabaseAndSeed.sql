@@ -18,5 +18,23 @@ GO
 CREATE TABLE Faces (
     Id INT IDENTITY(1,1) PRIMARY KEY,
     UniqueId NVARCHAR(255) UNIQUE NOT NULL,
-    Encoding VARCHAR(MAX) NOT NULL
+    FacePath VARCHAR(MAX) NOT NULL,
+    IsActive BIT DEFAULT(1)
+);
+
+
+-- Create Image Table
+CREATE TABLE Images (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    UniqueId NVARCHAR(255) UNIQUE NOT NULL,
+    ImagePath VARCHAR(MAX) NOT NULL,
+    IsActive BIT DEFAULT(1)
+);
+
+
+-- Create Image-Face Mapping Table
+CREATE TABLE ImageFaceMapping (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    FaceId INT,
+    ImageId VARCHAR(MAX) NOT NULL
 );
