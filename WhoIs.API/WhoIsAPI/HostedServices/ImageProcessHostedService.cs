@@ -1,6 +1,4 @@
-﻿
-using Dapper;
-using System.Data;
+﻿using System.Data;
 namespace WhoIsAPI.Workers;
 
 public class ImageProcessHostedService : IHostedService, IDisposable
