@@ -375,3 +375,4 @@ FodyWeavers.xsd
 *.tif
 *.tiff
 *.webp
+WhoIs.API/WhoIsAPI/appsettings.Development.json

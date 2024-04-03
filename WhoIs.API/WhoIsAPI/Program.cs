@@ -1,15 +1,18 @@
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
-using WhoIsAPI.Contracts.Requests;
-using WhoIsAPI.Contracts.Responses;
+using System.Data;
+using System.Data.SqlClient;
+using WhoIsAPI.Endpoints;
 
 const string facesFolder = "./faces";
+const string imagesFolder = "./images";
 const string faceRecognizeServiceKey = "facerec_service";
 
 var builder = WebApplication.CreateBuilder(args);
 
 string faceRecognizeServiceBaseURL = builder.Configuration.GetSection("FaceRecogService").Value ?? string.Empty;
-string seqServerBaseURL = builder.Configuration.GetSection("SeqServer").Value ?? string.Empty; 
+string seqServerBaseURL = builder.Configuration.GetSection("SeqServer").Value ?? string.Empty;
+string? connectionString = builder.Configuration.GetConnectionString("WHOIS_DB");
 
 
 builder.Host.UseSerilog();
@@ -28,137 +31,21 @@ builder.Services.AddHttpClient(faceRecognizeServiceKey, configuration =>
     configuration.BaseAddress = new Uri(faceRecognizeServiceBaseURL);
 });
 
+builder.Services.AddTransient<IDbConnection>(_ =>
+{
+    return new SqlConnection(connectionString);
+});
+
 var app = builder.Build();
 
 app.UseSwagger();
 app.UseSwaggerUI();
 
+app.AddImageBulkUploadEndpoint(imagesFolder);
 
-
-app.MapPost("/register-known-face", async ([FromForm] UploadFileRequest uploadFileRequest, 
-    [FromServices] IHttpClientFactory httpClientFactory,
-    [FromServices] ILogger<Program> logger) =>
+app.MapGet("/get-files/{isFaceFolder}", ([FromRoute]bool isFaceFolder) =>
 {
-    if (uploadFileRequest?.File is null || uploadFileRequest.File.Length == 0)
-        throw new ArgumentException("File cannot be nul or empty");
-
-    if (string.IsNullOrEmpty(uploadFileRequest?.Person))
-        throw new ArgumentException("Person cannot be nul or empty");
-
-    string imageName = Guid.NewGuid().ToString() + Path.GetExtension(uploadFileRequest.File.FileName);
-    string imagePath = Path.Combine(facesFolder, imageName);
-
-    try
-    {
-        using FileStream fileStream = new(imagePath, FileMode.Create);
-        await uploadFileRequest.File.CopyToAsync(fileStream);
-    }
-    catch (Exception ex)
-    {
-        throw new InvalidOperationException("Failed to save file.", ex);
-    }
-
-    try
-    {
-        using HttpClient httpClient = httpClientFactory.CreateClient(faceRecognizeServiceKey);
-        using MultipartFormDataContent formData = new MultipartFormDataContent();
-        byte[] fileBytes = await File.ReadAllBytesAsync(imagePath);
-        formData.Add(new ByteArrayContent(fileBytes), "file", uploadFileRequest.File.FileName);
-        HttpResponseMessage response = await httpClient.PostAsync($"/faces?id={uploadFileRequest.Person}", formData);
-        string responseContent = await response.Content.ReadAsStringAsync();
-        if (!response.IsSuccessStatusCode)
-        {
-            logger.LogInformation("Response from face recognition service:");
-            logger.LogInformation(responseContent);
-            return Results.BadRequest(new UploadFileResponse()
-            {
-                FilePath = null,
-                Success = false,
-                ExternalAPIResponse = responseContent
-            });
-        }
-
-        return Results.Ok(new UploadFileResponse()
-        {
-            FilePath = imagePath,
-            Success = true,
-            ExternalAPIResponse = responseContent
-        });
-    }
-    catch (HttpRequestException ex)
-    {
-        throw new InvalidOperationException("Failed to connect to face recognition service.", ex);
-    }
-    catch (Exception ex)
-    {
-        throw new InvalidOperationException("An error occurred during file upload and recognition.", ex);
-    }
-})
-.DisableAntiforgery()
-.WithName("Register Known Face")
-.WithOpenApi();
-
-
-app.MapPost("/identity-faces", async ([FromForm] IdentityFacesOnImageRequest identityFacesOnImageRequest, [FromServices] IHttpClientFactory httpClientFactory) =>
-{
-    if (identityFacesOnImageRequest?.File is null || identityFacesOnImageRequest.File.Length == 0)
-        throw new ArgumentException("File cannot be nul or empty");
-
-    string imageName = Guid.NewGuid().ToString() + Path.GetExtension(identityFacesOnImageRequest.File.FileName);
-    string imagePath = Path.Combine(facesFolder, imageName);
-
-    try
-    {
-        using FileStream fileStream = new(imagePath, FileMode.Create);
-        await identityFacesOnImageRequest.File.CopyToAsync(fileStream);
-    }
-    catch (Exception ex)
-    {
-        throw new InvalidOperationException("Failed to save file.", ex);
-    }
-
-    try
-    {
-        using HttpClient httpClient = httpClientFactory.CreateClient(faceRecognizeServiceKey);
-        using MultipartFormDataContent formData = new MultipartFormDataContent();
-        byte[] fileBytes = await File.ReadAllBytesAsync(imagePath);
-        formData.Add(new ByteArrayContent(fileBytes), "file", identityFacesOnImageRequest.File.FileName);
-        HttpResponseMessage response = await httpClient.PostAsync("/", formData);
-        string responseContent = await response.Content.ReadAsStringAsync();
-        if (!response.IsSuccessStatusCode)
-        {
-            Console.WriteLine("Response from face recognition service:");
-            Console.WriteLine(responseContent);
-            return Results.BadRequest(new IdentityFacesOnImageResponse()
-            {
-                Success = false,
-                ExternalAPIResponse = responseContent
-            });
-        }
-
-        return Results.Ok(new IdentityFacesOnImageResponse()
-        {
-            Success = true,
-            ExternalAPIResponse = responseContent
-        });
-    }
-    catch (HttpRequestException ex)
-    {
-        throw new InvalidOperationException("Failed to connect to face recognition service.", ex);
-    }
-    catch (Exception ex)
-    {
-        throw new InvalidOperationException("An error occurred during file upload and recognition.", ex);
-    }
-})
-.DisableAntiforgery()
-.WithName("Identity Faces On Image")
-.WithOpenApi();
-
-
-app.MapGet("/get-face-paths", () =>
-{
-    return Directory.GetFiles(facesFolder);
+    return Directory.GetFiles(isFaceFolder ? facesFolder : imagesFolder);
 })
 .WithName("Get File List")
 .WithOpenApi();
