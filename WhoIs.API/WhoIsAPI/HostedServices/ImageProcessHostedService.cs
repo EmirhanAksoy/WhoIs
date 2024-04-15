@@ -1,46 +1,52 @@
-﻿using System.Data;
-namespace WhoIsAPI.Workers;
+﻿namespace WhoIsAPI.Workers;
 
-public class ImageProcessHostedService : IHostedService, IDisposable
+public class ImageProcessHostedService : BackgroundService
 {
-    private readonly IDbConnection _dbConnection;
+    private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<ImageProcessHostedService> _logger;
-    private readonly int DELAY_IN_SEC = 3;
-    private Timer? _timer = null;
 
-    public ImageProcessHostedService(ILogger<ImageProcessHostedService> logger, IDbConnection dbConnection)
+    public ImageProcessHostedService(ILogger<ImageProcessHostedService> logger, IServiceProvider serviceProvider)
     {
         _logger = logger;
-        _dbConnection = dbConnection;
+        _serviceProvider = serviceProvider;
     }
 
-    public void Dispose()
+    private async Task ProcessImage(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("{HostedService} is disposing", nameof(ImageProcessHostedService));
-        _timer?.Dispose();
+        _logger.LogInformation("{HostedService} is working", nameof(ImageProcessHostedService));
+
+        //using var scope = _serviceProvider.CreateScope();
+        //ImageProcesService imageProcesService =
+        //    scope.ServiceProvider
+        //        .GetRequiredService<ImageProcesService>();
+
+        //await imageProcesService.ProcessImages();
     }
 
-    public Task StartAsync(CancellationToken cancellationToken)
+    protected async override Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("{HostedService} is running", nameof(ImageProcessHostedService));
+        try
+        {
+            _logger.LogInformation("{HostedService} is running", nameof(ImageProcessHostedService));
 
-        _timer = new Timer(DoWork, null, TimeSpan.Zero,
-            TimeSpan.FromSeconds(DELAY_IN_SEC));
-
-        return Task.CompletedTask;
+            await ProcessImage(stoppingToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An error occured while processing image");
+            throw;
+        }
     }
 
-    private void DoWork(object? state)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task StopAsync(CancellationToken cancellationToken)
+    public override async Task StopAsync(CancellationToken stoppingToken)
     {
         _logger.LogInformation("{HostedService} is stopping", nameof(ImageProcessHostedService));
+        await base.StopAsync(stoppingToken);
+    }
 
-        _timer?.Change(Timeout.Infinite, 0);
-
-        return Task.CompletedTask;
+    public override void Dispose()
+    {
+        _logger.LogInformation("{HostedService} is disposing", nameof(ImageProcessHostedService));
+        base.Dispose();
     }
 }

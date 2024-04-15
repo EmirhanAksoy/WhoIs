@@ -1,8 +1,7 @@
-﻿using Dapper;
-using Microsoft.AspNetCore.Mvc;
-using System.Data;
-using System.IO.Compression;
+﻿using Microsoft.AspNetCore.Mvc;
+using WhoIsAPI.Application.Services.ImageUpload;
 using WhoIsAPI.Contracts.Requests;
+using WhoIsAPI.Domain;
 
 namespace WhoIsAPI.Endpoints;
 
@@ -12,49 +11,32 @@ public static class ImageBulkUploadEndpointExtension
     {
         app.MapPost("/image-bulk-upload", async (
             [FromForm] ImageBulkUploadRequest imageBulkUploadRequest,
-            [FromServices] IDbConnection dbConnection,
+            [FromServices] IImageUploadService imageUploadService,
             [FromServices] ILogger<Program> logger) =>
         {
             try
             {
-
                 if (imageBulkUploadRequest.ZipFile is null || imageBulkUploadRequest.ZipFile.Length == 0)
                     return Results.BadRequest("No file uploaded.");
 
                 if (!imageBulkUploadRequest.ZipFile.FileName.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
                     return Results.BadRequest("Only zip files are allowed.");
 
-                if (!Directory.Exists(imageFolderPath))
-                    Directory.CreateDirectory(imageFolderPath);
+                Response<bool> serviceResponse = await imageUploadService.UploadImages(imageBulkUploadRequest.ZipFile, imageFolderPath);
 
-
-                List<string> imagePaths = [];
-                using (var archive = ZipFile.OpenRead(imageBulkUploadRequest.ZipFile.FileName))
-                {
-                    foreach (var entry in archive.Entries)
+                if (!serviceResponse.Success)
+                    return Results.Problem(new ProblemDetails()
                     {
-                        if (!entry.FullName.EndsWith("/", StringComparison.OrdinalIgnoreCase))
-                        {
-                            if (IsImageFile(entry.FullName))
-                            {
-                                var guidFileName = Guid.NewGuid().ToString() + Path.GetExtension(entry.FullName);
-                                var imagePath = Path.Combine(imageFolderPath, guidFileName);
-                                entry.ExtractToFile(imagePath);
-                                imagePaths.Add(imagePath);
-                            }
-                        }
-                    }
-                }
-                List<ImageUniqueIdPair> images = imagePaths.ConvertAll(imagePath => new ImageUniqueIdPair(Guid.NewGuid().ToString(), imagePath));
-
-                await SaveImages(images,dbConnection);
-
-                return Results.Ok(images);
+                        Status = StatusCodes.Status400BadRequest,
+                        Title = serviceResponse.ErrorCode,
+                        Detail = serviceResponse.Errors.FirstOrDefault(),
+                        Type = serviceResponse.ErrorCode
+                    });
+                return Results.Created();
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "An error occurred while processing the request.");
-                return Results.Problem("An error occurred while processing the request.", null, 500, "Internal Server Error");
+                return Results.Problem(title: "Image bulk upload failed", detail: ex.Message, statusCode: StatusCodes.Status500InternalServerError);
             }
         })
         .DisableAntiforgery()
@@ -62,21 +44,4 @@ public static class ImageBulkUploadEndpointExtension
         .WithOpenApi();
         return app;
     }
-
-    private static bool IsImageFile(string fileName)
-    {
-        var extensions = new[] { ".jpg", ".jpeg", ".png" };
-        return extensions.Any(ext => fileName.EndsWith(ext, StringComparison.OrdinalIgnoreCase));
-    }
-
-    private static async Task SaveImages(List<ImageUniqueIdPair> images, IDbConnection dbConnection)
-    {
-        using IDbTransaction transaction = dbConnection.BeginTransaction();
-        await dbConnection.ExecuteAsync(@"
-                INSERT INTO  Images (UniqueId, ImagePath)
-                VALUES(@UniqueId, @ImagePath)", images, transaction: transaction);
-        transaction.Commit();
-    }
-
-    public record ImageUniqueIdPair(string UniqueId, string ImagePath);
 }
