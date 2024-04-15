@@ -27,8 +27,21 @@ public class ImageUploadService : IImageUploadService
             if (!Directory.Exists(imageFolderPath))
                 Directory.CreateDirectory(imageFolderPath);
 
+
+            var fileName = Guid.NewGuid().ToString() + ".zip";
+
+            // Define the path where you want to save the zip file
+            var filePath = Path.Combine(imageFolderPath, fileName);
+
+            // Create a new FileStream to save the uploaded file
+            using (var fileStream = new FileStream(filePath, FileMode.Create))
+            {
+                // Copy the contents of the uploaded file to the FileStream asynchronously
+                await zipFile.CopyToAsync(fileStream);
+            }
+
             List<string> imagePaths = [];
-            using (var archive = ZipFile.OpenRead(zipFile.FileName))
+            using (var archive = ZipFile.OpenRead(filePath))
             {
                 foreach (var entry in archive.Entries)
                 {
@@ -45,6 +58,10 @@ public class ImageUploadService : IImageUploadService
                 }
             }
             List<ImageUniqueIdPair> images = imagePaths.ConvertAll(imagePath => new ImageUniqueIdPair(Guid.NewGuid().ToString(), imagePath));
+
+            if(File.Exists(filePath))
+                File.Delete(filePath);
+
             return await _imageUploadRepository.InsertImagePaths(images);  
         }
         catch (Exception ex)
