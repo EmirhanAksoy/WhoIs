@@ -20,6 +20,7 @@ public class ImageUploadRepository : IImageUploadRepository
     {
         try
         {
+            _dbConnection.Open();
             using IDbTransaction transaction = _dbConnection.BeginTransaction();
             int effectedRows = await _dbConnection.ExecuteAsync(@"
                 INSERT INTO  Images (UniqueId, ImagePath)
