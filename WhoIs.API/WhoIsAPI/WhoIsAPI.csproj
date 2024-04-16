@@ -23,4 +23,8 @@
     <ProjectReference Include="..\WhoIsAPI.Application\WhoIsAPI.Application.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Contracts\Responses\" />
+  </ItemGroup>
+
 </Project>

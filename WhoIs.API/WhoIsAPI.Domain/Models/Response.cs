@@ -63,4 +63,9 @@ public class Response<T>
     {
         return new Response<T>(errorMessages, errorCode);
     }
+
+    public static Response<T> MapError<TResponse>(Response<TResponse> response)
+    {
+        return new Response<T>(response.Errors,response.ErrorCode);
+    }
 }

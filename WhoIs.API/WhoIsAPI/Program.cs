@@ -2,8 +2,10 @@ using Microsoft.AspNetCore.Mvc;
 using Serilog;
 using System.Data;
 using System.Data.SqlClient;
+using WhoIsAPI.Application.Services.ImageProcess;
 using WhoIsAPI.Application.Services.ImageUpload;
 using WhoIsAPI.Endpoints;
+using WhoIsAPI.Persistence.Repositories.ImageProcessRepository;
 using WhoIsAPI.Persistence.Repositories.ImageUpload;
 
 const string facesFolder = "./faces";
@@ -40,6 +42,9 @@ builder.Services.AddTransient<IDbConnection>(_ =>
 
 builder.Services.AddTransient<IImageUploadService , ImageUploadService>();
 builder.Services.AddTransient<IImageUploadRepository, ImageUploadRepository>();
+
+builder.Services.AddTransient<IImageProcessService, ImageProcessService>();
+builder.Services.AddTransient<IImageProcessRepository, ImageProcessRepository>();
 
 var app = builder.Build();
 

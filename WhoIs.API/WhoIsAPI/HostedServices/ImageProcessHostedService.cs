@@ -1,4 +1,7 @@
-﻿namespace WhoIsAPI.Workers;
+﻿using WhoIsAPI.Application.Services.ImageProcess;
+using WhoIsAPI.Domain;
+
+namespace WhoIsAPI.Workers;
 
 public class ImageProcessHostedService : BackgroundService
 {
@@ -15,12 +18,16 @@ public class ImageProcessHostedService : BackgroundService
     {
         _logger.LogInformation("{HostedService} is working", nameof(ImageProcessHostedService));
 
-        //using var scope = _serviceProvider.CreateScope();
-        //ImageProcesService imageProcesService =
-        //    scope.ServiceProvider
-        //        .GetRequiredService<ImageProcesService>();
+        using var scope = _serviceProvider.CreateScope();
+        ImageProcessService imageProcesService =
+            scope.ServiceProvider
+                .GetRequiredService<ImageProcessService>();
 
-        //await imageProcesService.ProcessImages();
+        Response<bool> imageProcessResponse = await imageProcesService.ProcessImages();
+
+        await Task.Delay(1000,stoppingToken);
+
+        _logger.LogInformation("Image process operation complated {@response}", imageProcessResponse);
     }
 
     protected async override Task ExecuteAsync(CancellationToken stoppingToken)

@@ -1,4 +1,4 @@
-﻿namespace WhoIsAPI.Contracts.Responses;
+﻿namespace WhoIsAPI.Domain.Models;
 
 public class ImageProcessResponse
 {
