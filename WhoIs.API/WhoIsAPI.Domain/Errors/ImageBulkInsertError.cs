@@ -2,7 +2,7 @@
 
 public class ImageBulkInsertError : IError
 {
-    int IError.EventId => 5000;
+    int IError.EventId => (int)ErrorCodes.ImageBulkInsertError;
 
     string IError.ErrorCode => "ImageBulkInsertError";
 

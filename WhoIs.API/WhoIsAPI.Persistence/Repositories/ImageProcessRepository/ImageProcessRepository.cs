@@ -38,7 +38,7 @@ public class ImageProcessRepository : IImageProcessRepository
     {
         try
         {
-            int effectedRows = await _dbConnection.ExecuteAsync(@"UPDATE Images SET IsActive = 0 WHERE UniqueId = @UniqueId", imageId);
+            int effectedRows = await _dbConnection.ExecuteAsync(@"UPDATE Images SET IsActive = 0 WHERE UniqueId = @ImageId", new { ImageId = imageId });
             return Response<bool>.SuccessResult(effectedRows > 0);
         }
         catch (Exception ex)
@@ -59,6 +59,7 @@ public class ImageProcessRepository : IImageProcessRepository
                 INSERT INTO  ImageFaceMapping (FaceId, ImageId)
                 VALUES(@FaceId, @ImageId)", imageFaceMappings, transaction: transaction);
             transaction.Commit();
+
             return Response<bool>.SuccessResult(effectedRows > 0);
         }
         catch (Exception ex)
@@ -66,6 +67,34 @@ public class ImageProcessRepository : IImageProcessRepository
             IError error = new ImageFaceMappingInsertError();
             _logger.LogError(error.EventId, ex, "{Code} {Message} {@images}", error.ErrorCode, error.ErrorMessage, imageFaceMappings);
             return Response<bool>.ErrorResult(error, ex);
+        }
+        finally
+        {
+            _dbConnection.Close();
+        }
+    }
+
+    public async Task<Response<bool>> SetImageAsProcessed(string imageId)
+    {
+        try
+        {
+            _dbConnection.Open();
+            using IDbTransaction transaction = _dbConnection.BeginTransaction();
+            int effectedRows = await _dbConnection.ExecuteAsync(@"UPDATE  Images SET IsProcessed = 1 WHERE UniqueId = @ImageId",
+                new { ImageId = imageId }, transaction: transaction);
+            transaction.Commit();
+
+            return Response<bool>.SuccessResult(effectedRows > 0);
+        }
+        catch (Exception ex)
+        {
+            IError error = new ImageSetAsProcessedError();
+            _logger.LogError(error.EventId, ex, "{Code} {Message}", error.ErrorCode, error.ErrorMessage);
+            return Response<bool>.ErrorResult(error, ex);
+        }
+        finally
+        {
+            _dbConnection.Close();
         }
     }
 }

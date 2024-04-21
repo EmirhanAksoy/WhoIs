@@ -2,7 +2,7 @@
 
 public class ImageProcessServiceError : IError
 {
-    int IError.EventId => 9000;
+    int IError.EventId => (int)ErrorCodes.ImageProcessServiceError;
 
     string IError.ErrorCode => "ImageProcessServiceError";
 

@@ -67,14 +67,19 @@ public class ImageProcessService : IImageProcessService
                 return Response<bool>.ErrorResult(error);
             }
 
-            if(imageProcessResponse.Count == 0)
+            if (imageProcessResponse.Count == 0)
             {
                 return Response<bool>.SuccessResult(true);
             }
 
             List<ImageFaceMapping> imageFaceMappings = imageProcessResponse.Faces.ConvertAll(x => new ImageFaceMapping(x.Id, imageUniqueIdPairResponse?.Data?.UniqueId ?? string.Empty));
 
-            return await _imageProcessRepository.InsertImageFaceMappings(imageFaceMappings);
+            Response<bool> imageFaceMapInsertResponse = await _imageProcessRepository.InsertImageFaceMappings(imageFaceMappings);
+
+            if (!imageFaceMapInsertResponse.Success)
+                return imageFaceMapInsertResponse;
+
+            return await _imageProcessRepository.SetImageAsProcessed(imageUniqueIdPairResponse.Data.UniqueId);
         }
         catch (Exception ex)
         {

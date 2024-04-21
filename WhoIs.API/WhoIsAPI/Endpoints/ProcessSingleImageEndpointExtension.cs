@@ -1,7 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using WhoIsAPI.Application.Services.ImageProcess;
-using WhoIsAPI.Application.Services.ImageUpload;
-using WhoIsAPI.Contracts.Requests;
 using WhoIsAPI.Domain;
 
 namespace WhoIsAPI.Endpoints;

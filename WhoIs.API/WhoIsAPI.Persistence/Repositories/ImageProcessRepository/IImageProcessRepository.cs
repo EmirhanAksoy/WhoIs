@@ -10,4 +10,6 @@ public interface IImageProcessRepository
     Task<Response<bool>> DeleteImage(string imageId);
 
     Task<Response<bool>> InsertImageFaceMappings(List<ImageFaceMapping> imageFaceMappings);
+
+    Task<Response<bool>> SetImageAsProcessed(string imageId);
 }

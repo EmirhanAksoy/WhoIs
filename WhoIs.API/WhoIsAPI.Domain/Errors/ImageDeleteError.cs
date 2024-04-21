@@ -2,7 +2,7 @@
 
 public class ImageDeleteError : IError
 {
-    int IError.EventId => 1100;
+    int IError.EventId => (int)ErrorCodes.ImageDeleteError;
 
     string IError.ErrorCode => "ImageDeleteError";
 

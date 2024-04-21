@@ -2,7 +2,7 @@
 
 public class ImageFaceMappingInsertError : IError
 {
-    int IError.EventId => 1200;
+    int IError.EventId => (int)ErrorCodes.ImageFaceMappingInsertError;
 
     string IError.ErrorCode => "ImageFaceMappingInsertError";
 

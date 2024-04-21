@@ -2,7 +2,7 @@
 
 public class ImageRetrieveError : IError
 {
-    int IError.EventId => 10000;
+    int IError.EventId => (int)ErrorCodes.ImageRetrieveError;
 
     string IError.ErrorCode => "ImageFetchError";
 

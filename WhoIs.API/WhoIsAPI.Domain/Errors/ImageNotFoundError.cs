@@ -2,7 +2,7 @@
 
 public class ImageNotFoundError : IError
 {
-    int IError.EventId => 8000;
+    int IError.EventId => (int)ErrorCodes.ImageNotFoundError;
 
     string IError.ErrorCode => "ImageNotFoundError";
 

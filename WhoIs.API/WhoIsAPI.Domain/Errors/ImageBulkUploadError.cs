@@ -2,7 +2,7 @@
 
 public class ImageBulkUploadError : IError
 {
-    int IError.EventId => 6000;
+    int IError.EventId => (int)ErrorCodes.ImageBulkUploadError;
 
     string IError.ErrorCode => "ImageBulkUploadError";
 
