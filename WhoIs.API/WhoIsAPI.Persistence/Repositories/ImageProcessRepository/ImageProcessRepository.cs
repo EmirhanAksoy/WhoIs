@@ -23,7 +23,7 @@ public class ImageProcessRepository : IImageProcessRepository
     {
         try
         {
-            ImageUniqueIdPair imageUniqueIdPair = await _dbConnection.QueryFirstAsync<ImageUniqueIdPair>("SELECT TOP 1 FROM Images WHERE IsProcessed=0 AND IsActive=1");
+            ImageUniqueIdPair imageUniqueIdPair = await _dbConnection.QueryFirstAsync<ImageUniqueIdPair>("SELECT TOP 1 UniqueId,ImagePath FROM Images WHERE IsProcessed=0 AND IsActive=1");
             return Response<ImageUniqueIdPair>.SuccessResult(imageUniqueIdPair);
         }
         catch (Exception ex)

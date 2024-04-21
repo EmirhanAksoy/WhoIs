@@ -53,6 +53,8 @@ app.UseSwaggerUI();
 
 app.AddImageBulkUploadEndpoint(imagesFolder);
 
+app.AddProcessSingleImageEndpoint();
+
 app.MapGet("/get-files/{isFaceFolder}", ([FromRoute]bool isFaceFolder) =>
 {
     return Directory.GetFiles(isFaceFolder ? facesFolder : imagesFolder);

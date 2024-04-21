@@ -12,6 +12,10 @@ public class ImageProcessService : IImageProcessService
     private readonly ILogger<ImageProcessService> _logger;
     private readonly IImageProcessRepository _imageProcessRepository;
     private readonly IHttpClientFactory _httpClientFactory;
+    private JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions()
+    {
+        PropertyNameCaseInsensitive = true
+    };
     public ImageProcessService(ILogger<ImageProcessService> logger,
         IImageProcessRepository imageProcessRepository,
         IHttpClientFactory httpClientFactory)
@@ -55,7 +59,7 @@ public class ImageProcessService : IImageProcessService
             formData.Add(fileContent, "file", $"{Guid.NewGuid()}.png");
             HttpResponseMessage response = await httpClient.PostAsync("/detect_faces", formData);
             string responseBody = await response.Content.ReadAsStringAsync();
-            ImageProcessResponse? imageProcessResponse = JsonSerializer.Deserialize<ImageProcessResponse>(responseBody);
+            ImageProcessResponse? imageProcessResponse = JsonSerializer.Deserialize<ImageProcessResponse>(responseBody, _jsonSerializerOptions);
             if (imageProcessResponse is null)
             {
                 IError error = new ImageProcessServiceError();
@@ -68,7 +72,7 @@ public class ImageProcessService : IImageProcessService
                 return Response<bool>.SuccessResult(true);
             }
 
-            List<ImageFaceMapping> imageFaceMappings = imageProcessResponse.ImageProcesses.ConvertAll(x => new ImageFaceMapping(x.Id, imageUniqueIdPairResponse?.Data?.UniqueId ?? string.Empty));
+            List<ImageFaceMapping> imageFaceMappings = imageProcessResponse.Faces.ConvertAll(x => new ImageFaceMapping(x.Id, imageUniqueIdPairResponse?.Data?.UniqueId ?? string.Empty));
 
             return await _imageProcessRepository.InsertImageFaceMappings(imageFaceMappings);
         }
