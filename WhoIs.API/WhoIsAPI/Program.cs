@@ -7,6 +7,7 @@ using WhoIsAPI.Application.Services.ImageUpload;
 using WhoIsAPI.Endpoints;
 using WhoIsAPI.Persistence.Repositories.ImageProcessRepository;
 using WhoIsAPI.Persistence.Repositories.ImageUpload;
+using WhoIsAPI.Workers;
 
 const string facesFolder = "./faces";
 const string imagesFolder = "./images";
@@ -45,6 +46,15 @@ builder.Services.AddTransient<IImageUploadRepository, ImageUploadRepository>();
 
 builder.Services.AddTransient<IImageProcessService, ImageProcessService>();
 builder.Services.AddTransient<IImageProcessRepository, ImageProcessRepository>();
+
+
+builder.Services.Configure<HostOptions>(options =>
+{
+    options.ServicesStartConcurrently = true;
+    options.ServicesStopConcurrently = true;
+});
+
+builder.Services.AddHostedService<ImageProcessHostedService>();
 
 var app = builder.Build();
 

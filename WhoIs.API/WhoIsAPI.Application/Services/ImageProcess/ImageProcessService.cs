@@ -60,6 +60,7 @@ public class ImageProcessService : IImageProcessService
             HttpResponseMessage response = await httpClient.PostAsync("/detect_faces", formData);
             string responseBody = await response.Content.ReadAsStringAsync();
             ImageProcessResponse? imageProcessResponse = JsonSerializer.Deserialize<ImageProcessResponse>(responseBody, _jsonSerializerOptions);
+            _logger.LogInformation("Image process service response {@response}", imageProcessResponse);
             if (imageProcessResponse is null)
             {
                 IError error = new ImageProcessServiceError();
@@ -69,7 +70,9 @@ public class ImageProcessService : IImageProcessService
 
             if (imageProcessResponse.Count == 0)
             {
-                return Response<bool>.SuccessResult(true);
+                _logger.LogInformation("No face found in this image {@imageInfo}", imageUniqueIdPairResponse);
+
+                return await _imageProcessRepository.SetImageAsProcessed(imageUniqueIdPairResponse.Data.UniqueId);
             }
 
             List<ImageFaceMapping> imageFaceMappings = imageProcessResponse.Faces.ConvertAll(x => new ImageFaceMapping(x.Id, imageUniqueIdPairResponse?.Data?.UniqueId ?? string.Empty));
