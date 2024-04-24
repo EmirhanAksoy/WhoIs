@@ -7,18 +7,18 @@ using WhoIsAPI.Domain;
 using WhoIsAPI.Domain.Errors;
 using WhoIsAPI.Domain.Extensions;
 using WhoIsAPI.Domain.Models;
-using WhoIsAPI.Persistence.Repositories.ImageUpload;
+using WhoIsAPI.Persistence.Repositories.ImageProcessRepository;
 
 namespace WhoIsAPI.Application.Services.ImageUpload;
 
 public class ImageUploadService : IImageUploadService
 {
     private readonly ILogger<ImageUploadService> _logger;
-    private readonly IImageUploadRepository _imageUploadRepository;
-    public ImageUploadService(ILogger<ImageUploadService> logger, IImageUploadRepository imageUploadRepository)
+    private readonly IImageProcessRepository _imageProcessRepository;
+    public ImageUploadService(ILogger<ImageUploadService> logger, IImageProcessRepository imageProcessRepository)
     {
         _logger = logger;
-        _imageUploadRepository = imageUploadRepository;
+        _imageProcessRepository = imageProcessRepository;
     }
     public async Task<Response<bool>> UploadImages(IFormFile zipFile, string imageFolderPath)
     {
@@ -62,7 +62,7 @@ public class ImageUploadService : IImageUploadService
             if(File.Exists(filePath))
                 File.Delete(filePath);
 
-            return await _imageUploadRepository.InsertImagePaths(images);  
+            return await _imageProcessRepository.InsertImagePaths(images);  
         }
         catch (Exception ex)
         {

@@ -6,7 +6,6 @@ using WhoIsAPI.Application.Services.ImageProcess;
 using WhoIsAPI.Application.Services.ImageUpload;
 using WhoIsAPI.Endpoints;
 using WhoIsAPI.Persistence.Repositories.ImageProcessRepository;
-using WhoIsAPI.Persistence.Repositories.ImageUpload;
 using WhoIsAPI.Workers;
 
 const string facesFolder = "./faces";
@@ -42,7 +41,6 @@ builder.Services.AddTransient<IDbConnection>(_ =>
 });
 
 builder.Services.AddTransient<IImageUploadService , ImageUploadService>();
-builder.Services.AddTransient<IImageUploadRepository, ImageUploadRepository>();
 
 builder.Services.AddTransient<IImageProcessService, ImageProcessService>();
 builder.Services.AddTransient<IImageProcessRepository, ImageProcessRepository>();
@@ -64,6 +62,10 @@ app.UseSwaggerUI();
 app.AddImageBulkUploadEndpoint(imagesFolder);
 
 app.AddProcessSingleImageEndpoint();
+
+app.AddGetFaceIdsEndpoint();
+
+app.AddGetFaceImageEndpoint();
 
 app.MapGet("/get-files/{isFaceFolder}", ([FromRoute]bool isFaceFolder) =>
 {

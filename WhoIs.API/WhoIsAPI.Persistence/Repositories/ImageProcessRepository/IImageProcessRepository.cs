@@ -12,4 +12,10 @@ public interface IImageProcessRepository
     Task<Response<bool>> InsertImageFaceMappings(List<ImageFaceMapping> imageFaceMappings);
 
     Task<Response<bool>> SetImageAsProcessed(string imageId);
+
+    Task<Response<List<FaceInfo>>> GetFaces();
+
+    Task<Response<bool>> InsertImagePaths(List<ImageUniqueIdPair> images);
+
+    Task<Response<string>> GetFaceImagePath(string imageId);
 }

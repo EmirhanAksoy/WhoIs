@@ -23,7 +23,7 @@ public class ImageProcessRepository : IImageProcessRepository
     {
         try
         {
-            ImageUniqueIdPair imageUniqueIdPair = await _dbConnection.QueryFirstAsync<ImageUniqueIdPair>("SELECT TOP 1 UniqueId,ImagePath FROM Images WHERE IsProcessed=0 AND IsActive=1");
+            ImageUniqueIdPair? imageUniqueIdPair = await _dbConnection.QueryFirstOrDefaultAsync<ImageUniqueIdPair>("SELECT TOP 1 UniqueId,ImagePath FROM Images WHERE IsProcessed=0 AND IsActive=1");
             return Response<ImageUniqueIdPair>.SuccessResult(imageUniqueIdPair);
         }
         catch (Exception ex)
@@ -95,6 +95,57 @@ public class ImageProcessRepository : IImageProcessRepository
         finally
         {
             _dbConnection.Close();
+        }
+    }
+
+    public async Task<Response<List<FaceInfo>>> GetFaces()
+    {
+        try
+        {
+            IEnumerable<FaceInfo> faces = await _dbConnection.QueryAsync<FaceInfo>("SELECT UniqueId,Name FROM Faces WHERE IsActive=1");
+            return Response<List<FaceInfo>>.SuccessResult(faces.ToList());
+        }
+        catch (Exception ex)
+        {
+            IError error = new FacesRetrieveError();
+            _logger.LogError(error.EventId, ex, "{Code} {Message}", error.ErrorCode, error.ErrorMessage);
+            return Response<List<FaceInfo>>.ErrorResult(error, ex);
+        }
+    }
+
+    public async Task<Response<string>> GetFaceImagePath(string imageId)
+    {
+        try
+        {
+            string facePath = (await _dbConnection.QueryFirstOrDefaultAsync<string>("SELECT FacePath FROM Faces WHERE UniqueId=@UniqueId", new { UniqueId = imageId })) ?? string.Empty;
+            return Response<string>.SuccessResult(facePath);
+        }
+        catch (Exception ex)
+        {
+            IError error = new FacesRetrieveError();
+            _logger.LogError(error.EventId, ex, "{Code} {Message}", error.ErrorCode, error.ErrorMessage);
+            return Response<string>.ErrorResult(error, ex);
+        }
+    }
+
+
+    public async Task<Response<bool>> InsertImagePaths(List<ImageUniqueIdPair> images)
+    {
+        try
+        {
+            _dbConnection.Open();
+            using IDbTransaction transaction = _dbConnection.BeginTransaction();
+            int effectedRows = await _dbConnection.ExecuteAsync(@"
+                INSERT INTO  Images (UniqueId, ImagePath)
+                VALUES(@UniqueId, @ImagePath)", images, transaction: transaction);
+            transaction.Commit();
+            return Response<bool>.SuccessResult(effectedRows > 0);
+        }
+        catch (Exception ex)
+        {
+            IError error = new ImageBulkInsertError();
+            _logger.LogError(error.EventId, ex, "{Code} {Message} {@images}", error.ErrorCode, error.ErrorMessage, images);
+            return Response<bool>.ErrorResult(error, ex);
         }
     }
 }

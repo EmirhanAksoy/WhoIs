@@ -12,7 +12,7 @@ public class ImageProcessService : IImageProcessService
     private readonly ILogger<ImageProcessService> _logger;
     private readonly IImageProcessRepository _imageProcessRepository;
     private readonly IHttpClientFactory _httpClientFactory;
-    private JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions()
+    private readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         PropertyNameCaseInsensitive = true
     };
@@ -24,6 +24,17 @@ public class ImageProcessService : IImageProcessService
         _imageProcessRepository = imageProcessRepository;
         _httpClientFactory = httpClientFactory;
     }
+
+    public Task<Response<List<FaceInfo>>> GetFaces()
+    {
+        return _imageProcessRepository.GetFaces();
+    }
+
+    public Task<Response<string>> GetFaceImagePath(string imageId)
+    {
+        return _imageProcessRepository.GetFaceImagePath(imageId);
+    }
+
     public async Task<Response<bool>> ProcessImages()
     {
         try
@@ -35,6 +46,13 @@ public class ImageProcessService : IImageProcessService
             if (!imageUniqueIdPairResponse.Success)
             {
                 return Response<bool>.MapError(imageUniqueIdPairResponse);
+            }
+
+            if (imageUniqueIdPairResponse.Data is null)
+            {
+                _logger.LogInformation("No image record found in database");
+
+                return Response<bool>.SuccessResult(true);
             }
 
             // read image stream via path

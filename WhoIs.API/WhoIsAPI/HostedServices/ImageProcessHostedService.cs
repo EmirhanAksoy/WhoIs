@@ -7,7 +7,7 @@ public class ImageProcessHostedService : BackgroundService
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<ImageProcessHostedService> _logger;
-    private readonly TimeSpan _period = TimeSpan.FromSeconds(5);
+    private readonly TimeSpan _period = TimeSpan.FromSeconds(1);
 
     public ImageProcessHostedService(ILogger<ImageProcessHostedService> logger, IServiceProvider serviceProvider)
     {
@@ -19,7 +19,7 @@ public class ImageProcessHostedService : BackgroundService
     {
         _logger.LogInformation("{HostedService} is working", nameof(ImageProcessHostedService));
 
-        using PeriodicTimer timer = new PeriodicTimer(_period);
+        using PeriodicTimer timer = new(_period);
         while (
             !stoppingToken.IsCancellationRequested &&
             await timer.WaitForNextTickAsync(stoppingToken))
