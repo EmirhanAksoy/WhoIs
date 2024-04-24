@@ -11,5 +11,6 @@ public enum ErrorCodes
     ImageProcessServiceError,
     ImageRetrieveError,
     ImageSetAsProcessedError,
-    FacesRetrieveError
+    FacesRetrieveError,
+    FaceImagePathRetrieveError
 }

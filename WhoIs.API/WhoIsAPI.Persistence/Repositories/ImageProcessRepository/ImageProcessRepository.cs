@@ -18,7 +18,6 @@ public class ImageProcessRepository : IImageProcessRepository
         _logger = logger;
     }
 
-
     public async Task<Response<ImageUniqueIdPair>> GetUnprocessedImage()
     {
         try
@@ -122,12 +121,11 @@ public class ImageProcessRepository : IImageProcessRepository
         }
         catch (Exception ex)
         {
-            IError error = new FacesRetrieveError();
+            IError error = new FaceImagePathRetrieveError();
             _logger.LogError(error.EventId, ex, "{Code} {Message}", error.ErrorCode, error.ErrorMessage);
             return Response<string>.ErrorResult(error, ex);
         }
     }
-
 
     public async Task<Response<bool>> InsertImagePaths(List<ImageUniqueIdPair> images)
     {
