@@ -40,7 +40,7 @@ builder.Services.AddTransient<IDbConnection>(_ =>
     return new SqlConnection(connectionString);
 });
 
-builder.Services.AddTransient<IImageUploadService , ImageUploadService>();
+builder.Services.AddTransient<IImageUploadService, ImageUploadService>();
 
 builder.Services.AddTransient<IImageProcessService, ImageProcessService>();
 builder.Services.AddTransient<IImageProcessRepository, ImageProcessRepository>();
@@ -54,10 +54,25 @@ builder.Services.Configure<HostOptions>(options =>
 
 builder.Services.AddHostedService<ImageProcessHostedService>();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll",
+        builder =>
+        {
+            builder
+            .AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials();
+        });
+});
+
 var app = builder.Build();
 
 app.UseSwagger();
 app.UseSwaggerUI();
+
+app.UseCors("AllowAll");
 
 app.AddImageBulkUploadEndpoint(imagesFolder);
 
@@ -67,7 +82,7 @@ app.AddGetFaceIdsEndpoint();
 
 app.AddGetFaceImageEndpoint();
 
-app.MapGet("/get-files/{isFaceFolder}", ([FromRoute]bool isFaceFolder) =>
+app.MapGet("/get-files/{isFaceFolder}", ([FromRoute] bool isFaceFolder) =>
 {
     return Directory.GetFiles(isFaceFolder ? facesFolder : imagesFolder);
 })

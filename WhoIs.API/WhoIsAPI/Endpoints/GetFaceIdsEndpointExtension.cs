@@ -9,7 +9,7 @@ public static class GetFaceIdsEndpointExtension
 {
     public static WebApplication AddGetFaceIdsEndpoint(this WebApplication app)
     {
-        app.MapPost("/get-face-ids", async (
+        app.MapGet("/get-face-ids", async (
             [FromServices] IImageProcessService imageProcessService,
             [FromServices] ILogger<Program> logger) =>
         {
