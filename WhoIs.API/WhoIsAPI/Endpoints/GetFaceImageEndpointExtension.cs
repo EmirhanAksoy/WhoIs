@@ -16,11 +16,16 @@ public static class GetFaceImageEndpointExtension
             try
             {
                 Response<string> facePathResponse = await imageProcessService.GetFaceImagePath(imageId);
-                if (string.IsNullOrEmpty(facePathResponse.Data) || !System.IO.File.Exists(facePathResponse.Data))
+                if (string.IsNullOrEmpty(facePathResponse?.Data))
                 {
                     return Results.NotFound($"Face image not found with given image id {imageId}");
                 }
-                byte[] imageBytes = File.ReadAllBytes(facePathResponse.Data);
+                string imagePath = facePathResponse.Data.Replace(@"/root", ".");
+                if (!File.Exists(imagePath))
+                {
+                    logger.LogInformation("File not exists with {path}", facePathResponse.Data);
+                }
+                byte[] imageBytes = File.ReadAllBytes(imagePath);
                 return Results.File(imageBytes, "image/jpeg");
                
             }

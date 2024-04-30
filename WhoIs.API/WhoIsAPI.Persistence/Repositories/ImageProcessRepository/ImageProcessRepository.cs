@@ -101,7 +101,7 @@ public class ImageProcessRepository : IImageProcessRepository
     {
         try
         {
-            IEnumerable<FaceInfo> faces = await _dbConnection.QueryAsync<FaceInfo>("SELECT UniqueId,Name FROM Faces WHERE IsActive=1");
+            IEnumerable<FaceInfo> faces = await _dbConnection.QueryAsync<FaceInfo>("SELECT UniqueId AS FaceId,FaceName FROM Faces WHERE IsActive=1");
             return Response<List<FaceInfo>>.SuccessResult(faces.ToList());
         }
         catch (Exception ex)

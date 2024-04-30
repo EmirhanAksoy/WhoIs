@@ -1,0 +1,4 @@
+<div class="image-container" *ngIf="imageUrl">
+    <img [src]="imageUrl" [alt]="'Invalid Image'" />
+</div>
+<p><b class="">Name</b> : {{ faceInfo.faceName || 'Unknown'}}</p>

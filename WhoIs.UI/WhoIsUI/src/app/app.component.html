@@ -1,0 +1,19 @@
+<ng-container>
+  <div class="tabs">
+    <button (click)="selectedTab='faces'">Faces</button>
+    <button (click)="selectedTab='images'">Images</button>
+  </div>
+  <h3>{{selectedTab==='faces' ? 'Faces' : 'Images'}}</h3>
+  <div *ngIf="selectedTab === 'faces'" class="face-container">
+    <div *ngFor="let faceInfo of faceInfos">
+      <app-face-image [faceInfo]="faceInfo">
+
+      </app-face-image>
+    </div>
+
+  </div>
+  <div *ngIf="selectedTab === 'images'">
+
+
+  </div>
+</ng-container>
