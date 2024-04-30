@@ -8,7 +8,7 @@ public static class GetFaceImageEndpointExtension
 {
     public static WebApplication AddGetFaceImageEndpoint(this WebApplication app)
     {
-        app.MapPost("/get-face-image", async (
+        app.MapPost("/get-face-image/{imageId}", async (
             [FromServices] IImageProcessService imageProcessService,
             [FromRoute] string imageId,
             [FromServices] ILogger<Program> logger) =>
@@ -31,7 +31,7 @@ public static class GetFaceImageEndpointExtension
             }
         })
         .DisableAntiforgery()
-        .WithName("Get Face Ids")
+        .WithName("Get Face Image")
         .WithOpenApi();
         return app;
     }
