@@ -7,11 +7,12 @@ namespace WhoIsAPI.Endpoints;
 
 public static class ImageBulkUploadEndpointExtension
 {
-    public static WebApplication AddImageBulkUploadEndpoint(this WebApplication app, string imageFolderPath)
+    public static WebApplication AddImageBulkUploadEndpoint(this WebApplication app)
     {
         app.MapPost("/image-bulk-upload", async (
             [FromForm] ImageBulkUploadRequest imageBulkUploadRequest,
             [FromServices] IImageService imageUploadService,
+            [FromServices] IConfiguration configuration,
             [FromServices] ILogger<Program> logger) =>
         {
             try
@@ -21,6 +22,9 @@ public static class ImageBulkUploadEndpointExtension
 
                 if (!imageBulkUploadRequest.ZipFile.FileName.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
                     return Results.BadRequest("Only zip files are allowed.");
+
+
+                string imageFolderPath = configuration.GetSection("ImageFolderPath").Value ?? string.Empty;
 
                 Response<bool> serviceResponse = await imageUploadService.UploadImages(imageBulkUploadRequest.ZipFile, imageFolderPath);
 

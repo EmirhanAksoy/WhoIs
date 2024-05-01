@@ -69,7 +69,7 @@ app.UseSwaggerUI();
 
 app.UseCors("AllowAll");
 
-app.AddImageBulkUploadEndpoint(imagesFolder);
+app.AddImageBulkUploadEndpoint();
 
 app.AddProcessSingleImageEndpoint();
 
