@@ -74,7 +74,7 @@ public class ImageRepository : IImageRepository
         }
         catch (Exception ex)
         {
-            return Response<List<string>>.HandleException<FaceImagePathRetrieveError>(ex, _logger);
+            return Response<List<string>>.HandleException<GetImageIdsByFaceNameError>(ex, _logger);
         }
     }
 
@@ -87,7 +87,7 @@ public class ImageRepository : IImageRepository
         }
         catch (Exception ex)
         {
-            return Response<bool>.HandleException<FaceImagePathRetrieveError>(ex, _logger);
+            return Response<bool>.HandleException<CheckIfFaceNameExistsError>(ex, _logger);
         }
     }
 
@@ -162,7 +162,7 @@ public class ImageRepository : IImageRepository
         }
         catch (Exception ex)
         {
-            return Response<bool>.HandleException<FaceImagePathRetrieveError>(ex, _logger);
+            return Response<bool>.HandleException<UpdateFaceNameError>(ex, _logger);
         }
     }
 

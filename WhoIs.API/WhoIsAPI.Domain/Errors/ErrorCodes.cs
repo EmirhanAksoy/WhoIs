@@ -12,5 +12,9 @@ public enum ErrorCodes
     ImageRetrieveError,
     ImageSetAsProcessedError,
     FacesRetrieveError,
-    FaceImagePathRetrieveError
+    FaceImagePathRetrieveError,
+    GetImageIdsByFaceNameError,
+    CheckIfFaceNameExistsError,
+    UpdateFaceNameError,
+    FaceNameAlreadyInUseError
 }

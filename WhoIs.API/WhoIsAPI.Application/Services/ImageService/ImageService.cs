@@ -62,7 +62,7 @@ public class ImageService : IImageService
             if (!File.Exists(imageUniqueIdPairResponse.Data.ImagePath))
             {
                 Response<bool> imageDeleteResponse = await _imageProcessRepository.DeleteImage(imageUniqueIdPairResponse.Data.UniqueId);
-                return Response<bool>.HandleErrorResult<ImageNotFoundError>(_logger, "Image file is not exists {@image} {@response} ", imageUniqueIdPairResponse?.Data, imageDeleteResponse);
+                return Response<bool>.HandleErrorResult<ImageNotFoundError>(_logger, "Image file is not exists {@image} {@response} ", imageUniqueIdPairResponse.Data, imageDeleteResponse);
             }
 
             byte[] imageBytes = File.ReadAllBytes(imageUniqueIdPairResponse.Data.ImagePath);
@@ -115,7 +115,7 @@ public class ImageService : IImageService
 
             if (isNameInUseResponse.Data)
             {
-                return Response<bool>.HandleErrorResult<ImageProcessServiceError>(_logger,"{Name} is already in use in another face image",name);
+                return Response<bool>.HandleErrorResult<FaceNameAlreadyInUseError>(_logger,"{Name} is already in use in another face image",name);
             }
             return await _imageProcessRepository.UpdateFaceName(imageId, name);
         }
