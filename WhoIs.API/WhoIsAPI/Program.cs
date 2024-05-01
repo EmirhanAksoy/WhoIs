@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Mvc;
 using Serilog;
 using System.Data;
 using System.Data.SqlClient;
@@ -7,15 +6,13 @@ using WhoIsAPI.Endpoints;
 using WhoIsAPI.Persistence.Repositories.ImageRepository;
 using WhoIsAPI.Workers;
 
-const string imagesFolder = "./images";
-const string faceRecognizeServiceKey = "facerec_service";
 
 var builder = WebApplication.CreateBuilder(args);
 
 string faceRecognizeServiceBaseURL = builder.Configuration.GetSection("FaceRecogService").Value ?? string.Empty;
 string seqServerBaseURL = builder.Configuration.GetSection("SeqServer").Value ?? string.Empty;
-string? connectionString = builder.Configuration.GetConnectionString("WHOIS_DB");
-
+string connectionString = builder.Configuration.GetConnectionString("WHOIS_DB") ?? string.Empty;
+string faceRecognizeServiceKey = builder.Configuration.GetSection("FaceRecognitionServiceKey").Value ?? string.Empty;
 
 builder.Host.UseSerilog();
 Serilog.ILogger logger = new LoggerConfiguration()

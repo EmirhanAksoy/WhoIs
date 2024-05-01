@@ -4,8 +4,6 @@ using WhoIsAPI.Domain.Models;
 using Dapper;
 using WhoIsAPI.Domain;
 using WhoIsAPI.Domain.Errors;
-using static System.Net.Mime.MediaTypeNames;
-using System.Xml.Linq;
 
 namespace WhoIsAPI.Persistence.Repositories.ImageRepository;
 
