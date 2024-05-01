@@ -117,6 +117,10 @@ public class ImageProcessRepository : IImageProcessRepository
         try
         {
             string facePath = (await _dbConnection.QueryFirstOrDefaultAsync<string>("SELECT FacePath FROM Faces WHERE UniqueId=@UniqueId", new { UniqueId = imageId })) ?? string.Empty;
+            if (string.IsNullOrEmpty(facePath))
+            {
+                facePath = facePath.Replace(@"/root", ".");
+            }
             return Response<string>.SuccessResult(facePath);
         }
         catch (Exception ex)

@@ -15,19 +15,27 @@ public static class GetFaceImageEndpointExtension
         {
             try
             {
-                Response<string> facePathResponse = await imageProcessService.GetFaceImagePath(imageId);
-                if (string.IsNullOrEmpty(facePathResponse?.Data))
+                Response<string> serviceResponse = await imageProcessService.GetFaceImagePath(imageId);
+                if (!serviceResponse.Success)
+                    return Results.Problem(new ProblemDetails()
+                    {
+                        Status = StatusCodes.Status400BadRequest,
+                        Title = serviceResponse.ErrorCode,
+                        Detail = serviceResponse.Errors.FirstOrDefault(),
+                        Type = serviceResponse.ErrorCode
+                    });
+                if (string.IsNullOrEmpty(serviceResponse?.Data))
                 {
                     return Results.NotFound($"Face image not found with given image id {imageId}");
                 }
-                string imagePath = facePathResponse.Data.Replace(@"/root", ".");
+                string imagePath = serviceResponse.Data;
                 if (!File.Exists(imagePath))
                 {
-                    logger.LogInformation("File not exists with {path}", facePathResponse.Data);
+                    logger.LogInformation("File not exists with {path}", serviceResponse.Data);
                 }
                 byte[] imageBytes = File.ReadAllBytes(imagePath);
                 return Results.File(imageBytes, "image/jpeg");
-               
+
             }
             catch (Exception ex)
             {
