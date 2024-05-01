@@ -62,10 +62,7 @@ public class ImageService : IImageService
             if (!File.Exists(imageUniqueIdPairResponse.Data.ImagePath))
             {
                 Response<bool> imageDeleteResponse = await _imageProcessRepository.DeleteImage(imageUniqueIdPairResponse.Data.UniqueId);
-
-                IError error = new ImageNotFoundError();
-                _logger.LogError(error.EventId, "Image file is not exists {Code} {Message} {@iamge} {@response} ", error.ErrorCode, error.ErrorMessage, imageUniqueIdPairResponse?.Data, imageDeleteResponse);
-                return Response<bool>.ErrorResult(error);
+                return Response<bool>.HandleErrorResult<ImageNotFoundError>(_logger, "Image file is not exists {@image} {@response} ", imageUniqueIdPairResponse?.Data, imageDeleteResponse);
             }
 
             byte[] imageBytes = File.ReadAllBytes(imageUniqueIdPairResponse.Data.ImagePath);
@@ -83,16 +80,14 @@ public class ImageService : IImageService
             _logger.LogInformation("Image process service response {@response}", imageProcessResponse);
             if (imageProcessResponse is null)
             {
-                IError error = new ImageProcessServiceError();
-                _logger.LogError(error.EventId, "{Code} {Message} ", error.ErrorCode, error.ErrorMessage);
-                return Response<bool>.ErrorResult(error);
+                return Response<bool>.HandleErrorResult<ImageProcessServiceError>(_logger, "Image process service failed {responseBody}",responseBody);
             }
 
             if (imageProcessResponse.Count == 0)
             {
                 _logger.LogInformation("No face found in this image {@imageInfo}", imageUniqueIdPairResponse);
 
-                return await _imageProcessRepository.SetImageAsProcessed(imageUniqueIdPairResponse.Data.UniqueId);
+                return await _imageProcessRepository.UpdateImageAsProcessed(imageUniqueIdPairResponse.Data.UniqueId);
             }
 
             List<ImageFaceMapping> imageFaceMappings = imageProcessResponse.Faces.ConvertAll(x => new ImageFaceMapping(x.Id, imageUniqueIdPairResponse?.Data?.UniqueId ?? string.Empty));
@@ -102,13 +97,11 @@ public class ImageService : IImageService
             if (!imageFaceMapInsertResponse.Success)
                 return imageFaceMapInsertResponse;
 
-            return await _imageProcessRepository.SetImageAsProcessed(imageUniqueIdPairResponse.Data.UniqueId);
+            return await _imageProcessRepository.UpdateImageAsProcessed(imageUniqueIdPairResponse.Data.UniqueId);
         }
         catch (Exception ex)
         {
-            IError error = new ImageProcessError();
-            _logger.LogError(error.EventId, ex, "{Code} {Message} ", error.ErrorCode, error.ErrorMessage);
-            return Response<bool>.ErrorResult(error, ex);
+            return Response<bool>.HandleException<ImageProcessError>(ex, _logger);
         }
     }
 
@@ -122,17 +115,13 @@ public class ImageService : IImageService
 
             if (isNameInUseResponse.Data)
             {
-                IError error = new ImageProcessServiceError();
-                _logger.LogError(error.EventId, "{Code} {Message} ", error.ErrorCode, error.ErrorMessage);
-                return Response<bool>.ErrorResult(error);
+                return Response<bool>.HandleErrorResult<ImageProcessServiceError>(_logger,"{Name} is already in use in another face image",name);
             }
             return await _imageProcessRepository.UpdateFaceName(imageId, name);
         }
         catch (Exception ex)
         {
-            IError error = new ImageProcessError();
-            _logger.LogError(error.EventId, ex, "{Code} {Message} ", error.ErrorCode, error.ErrorMessage);
-            return Response<bool>.ErrorResult(error, ex);
+            return Response<bool>.HandleException<ImageProcessError>(ex, _logger);
         }
     }
 
@@ -187,9 +176,7 @@ public class ImageService : IImageService
         }
         catch (Exception ex)
         {
-            IError error = new ImageBulkUploadError();
-            _logger.LogError(error.EventId, ex, "{Code} {Message} {fileName}", error.ErrorCode, error.ErrorMessage, zipFile.FileName);
-            return Response<bool>.ErrorResult(error, ex);
+            return Response<bool>.HandleException<ImageBulkUploadError>(ex, _logger);
         }
     }
 }

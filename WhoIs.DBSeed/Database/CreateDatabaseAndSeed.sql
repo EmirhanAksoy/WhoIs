@@ -38,5 +38,6 @@ CREATE TABLE Images (
 CREATE TABLE ImageFaceMapping (
     Id INT IDENTITY(1,1) PRIMARY KEY,
     FaceId NVARCHAR(255),
-    ImageId VARCHAR(MAX) NOT NULL
+    ImageId VARCHAR(MAX) NOT NULL,
+    IsActive BIT DEFAULT(1)
 );

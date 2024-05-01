@@ -27,24 +27,67 @@ public class ImageRepository : IImageRepository
         }
         catch (Exception ex)
         {
-            IError error = new ImageRetrieveError();
-            _logger.LogError(error.EventId, ex, "{Code} {Message}", error.ErrorCode, error.ErrorMessage);
-            return Response<ImageUniqueIdPair>.ErrorResult(error, ex);
+            return Response<ImageUniqueIdPair>.HandleException<ImageRetrieveError>(ex, _logger);
         }
     }
 
-    public async Task<Response<bool>> DeleteImage(string imageId)
+    public async Task<Response<List<FaceInfo>>> GetFaces()
     {
         try
         {
-            int effectedRows = await _dbConnection.ExecuteAsync(@"UPDATE Images SET IsActive = 0 WHERE UniqueId = @ImageId", new { ImageId = imageId });
-            return Response<bool>.SuccessResult(effectedRows > 0);
+            IEnumerable<FaceInfo> faces = await _dbConnection.QueryAsync<FaceInfo>("SELECT UniqueId AS FaceId,FaceName FROM Faces WHERE IsActive=1");
+            return Response<List<FaceInfo>>.SuccessResult(faces.ToList());
         }
         catch (Exception ex)
         {
-            IError error = new ImageDeleteError();
-            _logger.LogError(error.EventId, ex, "{Code} {Message}", error.ErrorCode, error.ErrorMessage);
-            return Response<bool>.ErrorResult(error, ex);
+            return Response<List<FaceInfo>>.HandleException<FacesRetrieveError>(ex, _logger);
+        }
+    }
+
+    public async Task<Response<string>> GetFaceImagePath(string imageId)
+    {
+        try
+        {
+            string facePath = (await _dbConnection.QueryFirstOrDefaultAsync<string>("SELECT FacePath FROM Faces WHERE UniqueId=@UniqueId", new { UniqueId = imageId })) ?? string.Empty;
+            if (string.IsNullOrEmpty(facePath))
+            {
+                facePath = facePath.Replace(@"/root", ".");
+            }
+            return Response<string>.SuccessResult(facePath);
+        }
+        catch (Exception ex)
+        {
+            return Response<string>.HandleException<FaceImagePathRetrieveError>(ex, _logger);
+        }
+    }
+
+    public async Task<Response<List<string>>> GetImageIdsByFaceName(string faceNameSearchText)
+    {
+        try
+        {
+            var imageIds = (await _dbConnection.QueryAsync<string>("""
+                SELECT IMF.ImageId FROM ImageFaceMapping IMF
+                LEFT JOIN Faces F on IMF.FaceId = F.UniqueId
+                WHERE IMF.IsActive = 1 AND F.FaceName LIKE '%' + @Search + '%'
+                """, new { Search = faceNameSearchText })).ToList();
+            return Response<List<string>>.SuccessResult(imageIds);
+        }
+        catch (Exception ex)
+        {
+            return Response<List<string>>.HandleException<FaceImagePathRetrieveError>(ex, _logger);
+        }
+    }
+
+    public async Task<Response<bool>> CheckIfFaceNameExists(string imageId, string name)
+    {
+        try
+        {
+            bool facePath = (await _dbConnection.QueryFirstOrDefaultAsync<bool>("SELECT 1 FROM Faces WHERE UniqueId<>@UniqueId AND FaceName=@FaceName AND IsActive=1", new { UniqueId = imageId, FaceName = name }));
+            return Response<bool>.SuccessResult(facePath);
+        }
+        catch (Exception ex)
+        {
+            return Response<bool>.HandleException<FaceImagePathRetrieveError>(ex, _logger);
         }
     }
 
@@ -63,71 +106,11 @@ public class ImageRepository : IImageRepository
         }
         catch (Exception ex)
         {
-            IError error = new ImageFaceMappingInsertError();
-            _logger.LogError(error.EventId, ex, "{Code} {Message} {@images}", error.ErrorCode, error.ErrorMessage, imageFaceMappings);
-            return Response<bool>.ErrorResult(error, ex);
+            return Response<bool>.HandleException<ImageFaceMappingInsertError>(ex, _logger);
         }
         finally
         {
             _dbConnection.Close();
-        }
-    }
-
-    public async Task<Response<bool>> SetImageAsProcessed(string imageId)
-    {
-        try
-        {
-            _dbConnection.Open();
-            using IDbTransaction transaction = _dbConnection.BeginTransaction();
-            int effectedRows = await _dbConnection.ExecuteAsync(@"UPDATE  Images SET IsProcessed = 1 WHERE UniqueId = @ImageId",
-                new { ImageId = imageId }, transaction: transaction);
-            transaction.Commit();
-
-            return Response<bool>.SuccessResult(effectedRows > 0);
-        }
-        catch (Exception ex)
-        {
-            IError error = new ImageSetAsProcessedError();
-            _logger.LogError(error.EventId, ex, "{Code} {Message}", error.ErrorCode, error.ErrorMessage);
-            return Response<bool>.ErrorResult(error, ex);
-        }
-        finally
-        {
-            _dbConnection.Close();
-        }
-    }
-
-    public async Task<Response<List<FaceInfo>>> GetFaces()
-    {
-        try
-        {
-            IEnumerable<FaceInfo> faces = await _dbConnection.QueryAsync<FaceInfo>("SELECT UniqueId AS FaceId,FaceName FROM Faces WHERE IsActive=1");
-            return Response<List<FaceInfo>>.SuccessResult(faces.ToList());
-        }
-        catch (Exception ex)
-        {
-            IError error = new FacesRetrieveError();
-            _logger.LogError(error.EventId, ex, "{Code} {Message}", error.ErrorCode, error.ErrorMessage);
-            return Response<List<FaceInfo>>.ErrorResult(error, ex);
-        }
-    }
-
-    public async Task<Response<string>> GetFaceImagePath(string imageId)
-    {
-        try
-        {
-            string facePath = (await _dbConnection.QueryFirstOrDefaultAsync<string>("SELECT FacePath FROM Faces WHERE UniqueId=@UniqueId", new { UniqueId = imageId })) ?? string.Empty;
-            if (string.IsNullOrEmpty(facePath))
-            {
-                facePath = facePath.Replace(@"/root", ".");
-            }
-            return Response<string>.SuccessResult(facePath);
-        }
-        catch (Exception ex)
-        {
-            IError error = new FaceImagePathRetrieveError();
-            _logger.LogError(error.EventId, ex, "{Code} {Message}", error.ErrorCode, error.ErrorMessage);
-            return Response<string>.ErrorResult(error, ex);
         }
     }
 
@@ -145,24 +128,28 @@ public class ImageRepository : IImageRepository
         }
         catch (Exception ex)
         {
-            IError error = new ImageBulkInsertError();
-            _logger.LogError(error.EventId, ex, "{Code} {Message} {@images}", error.ErrorCode, error.ErrorMessage, images);
-            return Response<bool>.ErrorResult(error, ex);
+            return Response<bool>.HandleException<ImageBulkInsertError>(ex, _logger);
         }
     }
 
-    public async Task<Response<bool>> CheckIfFaceNameExists(string imageId, string name)
+    public async Task<Response<bool>> UpdateImageAsProcessed(string imageId)
     {
         try
         {
-            bool facePath = (await _dbConnection.QueryFirstOrDefaultAsync<bool>("SELECT 1 FROM Faces WHERE UniqueId<>@UniqueId AND FaceName=@FaceName AND IsActive=1", new { UniqueId = imageId, FaceName = name }));
-            return Response<bool>.SuccessResult(facePath);
+            _dbConnection.Open();
+            using IDbTransaction transaction = _dbConnection.BeginTransaction();
+            int effectedRows = await _dbConnection.ExecuteAsync(@"UPDATE  Images SET IsProcessed = 1 WHERE UniqueId = @ImageId",
+                new { ImageId = imageId }, transaction: transaction);
+            transaction.Commit();
+            return Response<bool>.SuccessResult(effectedRows > 0);
         }
         catch (Exception ex)
         {
-            IError error = new FaceImagePathRetrieveError();
-            _logger.LogError(error.EventId, ex, "{Code} {Message}", error.ErrorCode, error.ErrorMessage);
-            return Response<bool>.ErrorResult(error, ex);
+            return Response<bool>.HandleException<ImageSetAsProcessedError>(ex, _logger);
+        }
+        finally
+        {
+            _dbConnection.Close();
         }
     }
 
@@ -175,28 +162,20 @@ public class ImageRepository : IImageRepository
         }
         catch (Exception ex)
         {
-            IError error = new FaceImagePathRetrieveError();
-            _logger.LogError(error.EventId, ex, "{Code} {Message}", error.ErrorCode, error.ErrorMessage);
-            return Response<bool>.ErrorResult(error, ex);
+            return Response<bool>.HandleException<FaceImagePathRetrieveError>(ex, _logger);
         }
     }
 
-    public async Task<Response<List<string>>> GetImageIdsByFaceName(string faceNameSearchText)
+    public async Task<Response<bool>> DeleteImage(string imageId)
     {
         try
         {
-            var imageIds = (await _dbConnection.QueryAsync<string>("""
-                SELECT IMF.ImageId FROM ImageFaceMapping IMF
-                LEFT JOIN Faces F on IMF.FaceId = F.UniqueId
-                WHERE F.FaceName LIKE '%' + @Search + '%'
-                """, new { Search = faceNameSearchText })).ToList();
-            return Response<List<string>>.SuccessResult(imageIds);
+            int effectedRows = await _dbConnection.ExecuteAsync(@"UPDATE Images SET IsActive = 0 WHERE UniqueId = @ImageId", new { ImageId = imageId });
+            return Response<bool>.SuccessResult(effectedRows > 0);
         }
         catch (Exception ex)
         {
-            IError error = new FaceImagePathRetrieveError();
-            _logger.LogError(error.EventId, ex, "{Code} {Message}", error.ErrorCode, error.ErrorMessage);
-            return Response<List<string>>.ErrorResult(error, ex);
+            return Response<bool>.HandleException<ImageDeleteError>(ex,_logger);
         }
     }
 }

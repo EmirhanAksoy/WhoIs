@@ -1,4 +1,5 @@
-﻿using WhoIsAPI.Domain.Errors;
+﻿using Microsoft.Extensions.Logging;
+using WhoIsAPI.Domain.Errors;
 
 namespace WhoIsAPI.Domain;
 
@@ -43,29 +44,24 @@ public class Response<T>
     {
         return new Response<T>(data);
     }
-
-    public static Response<T> ErrorResult(string errorCode, string errorMessage)
+    
+    public static Response<T> HandleErrorResult<TError>(ILogger logger, string logMessage, params object[] logParams) where TError : class, IError, new()
     {
-        return new Response<T>(errorMessage, errorCode);
-    }
-
-    public static Response<T> ErrorResult(IError error)
-    {
+        TError error = new();
+        string errorLog = "{ErrorCode} {ErrorMessage}";
+        logger.LogError(error.EventId, $"{errorLog} {logMessage}", error.ErrorCode, error.ErrorMessage, logParams);
         return new Response<T>(error.ErrorMessage, error.ErrorCode);
     }
 
-    public static Response<T> ErrorResult(IError error, Exception exception)
+    public static Response<T> HandleException<TError>(Exception exception, ILogger logger) where TError : class, IError, new()
     {
+        TError error = new();
+        logger.LogError(error.EventId, exception, "{Code} {Message}", error.ErrorCode, error.ErrorMessage);
         return new Response<T>(error.ErrorMessage, error.ErrorCode, exception);
-    }
-
-    public static Response<T> ErrorResult(string errorCode, List<string> errorMessages)
-    {
-        return new Response<T>(errorMessages, errorCode);
     }
 
     public static Response<T> MapError<TResponse>(Response<TResponse> response)
     {
-        return new Response<T>(response.Errors,response.ErrorCode);
+        return new Response<T>(response.Errors, response.ErrorCode);
     }
 }

@@ -7,21 +7,22 @@ public interface IImageRepository
 {
     Task<Response<ImageUniqueIdPair>> GetUnprocessedImage();
 
-    Task<Response<bool>> DeleteImage(string imageId);
-
-    Task<Response<bool>> InsertImageFaceMappings(List<ImageFaceMapping> imageFaceMappings);
-
-    Task<Response<bool>> SetImageAsProcessed(string imageId);
-
     Task<Response<List<FaceInfo>>> GetFaces();
-
-    Task<Response<bool>> InsertImagePaths(List<ImageUniqueIdPair> images);
 
     Task<Response<string>> GetFaceImagePath(string imageId);
 
+    Task<Response<List<string>>> GetImageIdsByFaceName(string faceNameSearchText);
+
     Task<Response<bool>> CheckIfFaceNameExists(string imageId, string name);
+
+    Task<Response<bool>> InsertImageFaceMappings(List<ImageFaceMapping> imageFaceMappings);
+
+    Task<Response<bool>> InsertImagePaths(List<ImageUniqueIdPair> images);
+
+    Task<Response<bool>> UpdateImageAsProcessed(string imageId);
 
     Task<Response<bool>> UpdateFaceName(string imageId, string name);
 
-    Task<Response<List<string>>> GetImageIdsByFaceName(string faceNameSearchText);
+    Task<Response<bool>> DeleteImage(string imageId);
+
 }
