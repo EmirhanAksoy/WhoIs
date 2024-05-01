@@ -4,15 +4,17 @@ using WhoIsAPI.Domain.Models;
 using Dapper;
 using WhoIsAPI.Domain;
 using WhoIsAPI.Domain.Errors;
+using static System.Net.Mime.MediaTypeNames;
+using System.Xml.Linq;
 
-namespace WhoIsAPI.Persistence.Repositories.ImageProcessRepository;
+namespace WhoIsAPI.Persistence.Repositories.ImageRepository;
 
-public class ImageProcessRepository : IImageProcessRepository
+public class ImageRepository : IImageRepository
 {
     private readonly IDbConnection _dbConnection;
-    private readonly ILogger<ImageProcessRepository> _logger;
+    private readonly ILogger<ImageRepository> _logger;
 
-    public ImageProcessRepository(IDbConnection dbConnection, ILogger<ImageProcessRepository> logger)
+    public ImageRepository(IDbConnection dbConnection, ILogger<ImageRepository> logger)
     {
         _dbConnection = dbConnection;
         _logger = logger;
@@ -148,6 +150,55 @@ public class ImageProcessRepository : IImageProcessRepository
             IError error = new ImageBulkInsertError();
             _logger.LogError(error.EventId, ex, "{Code} {Message} {@images}", error.ErrorCode, error.ErrorMessage, images);
             return Response<bool>.ErrorResult(error, ex);
+        }
+    }
+
+    public async Task<Response<bool>> CheckIfFaceNameExists(string imageId, string name)
+    {
+        try
+        {
+            bool facePath = (await _dbConnection.QueryFirstOrDefaultAsync<bool>("SELECT 1 FROM Faces WHERE UniqueId<>@UniqueId AND FaceName=@FaceName AND IsActive=1", new { UniqueId = imageId, FaceName = name }));
+            return Response<bool>.SuccessResult(facePath);
+        }
+        catch (Exception ex)
+        {
+            IError error = new FaceImagePathRetrieveError();
+            _logger.LogError(error.EventId, ex, "{Code} {Message}", error.ErrorCode, error.ErrorMessage);
+            return Response<bool>.ErrorResult(error, ex);
+        }
+    }
+
+    public async Task<Response<bool>> UpdateFaceName(string imageId, string name)
+    {
+        try
+        {
+            int effectedRows = (await _dbConnection.ExecuteAsync("UPDATE Faces SET FaceName=@FaceName WHERE UniqueId=@UniqueId", new { UniqueId = imageId, FaceName = name }));
+            return Response<bool>.SuccessResult(effectedRows > 0);
+        }
+        catch (Exception ex)
+        {
+            IError error = new FaceImagePathRetrieveError();
+            _logger.LogError(error.EventId, ex, "{Code} {Message}", error.ErrorCode, error.ErrorMessage);
+            return Response<bool>.ErrorResult(error, ex);
+        }
+    }
+
+    public async Task<Response<List<string>>> GetImageIdsByFaceName(string faceNameSearchText)
+    {
+        try
+        {
+            var imageIds = (await _dbConnection.QueryAsync<string>("""
+                SELECT IMF.ImageId FROM ImageFaceMapping IMF
+                LEFT JOIN Faces F on IMF.FaceId = F.UniqueId
+                WHERE F.FaceName LIKE '%' + @Search + '%'
+                """, new { Search = faceNameSearchText })).ToList();
+            return Response<List<string>>.SuccessResult(imageIds);
+        }
+        catch (Exception ex)
+        {
+            IError error = new FaceImagePathRetrieveError();
+            _logger.LogError(error.EventId, ex, "{Code} {Message}", error.ErrorCode, error.ErrorMessage);
+            return Response<List<string>>.ErrorResult(error, ex);
         }
     }
 }

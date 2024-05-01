@@ -4,13 +4,14 @@ using WhoIsAPI.Domain;
 
 namespace WhoIsAPI.Endpoints;
 
-public static class GetFaceImageEndpointExtension
+public static class UpdateFaceNameEndpointExtension
 {
-    public static WebApplication AddGetFaceImageEndpoint(this WebApplication app)
+    public static WebApplication AddUpdateFaceNameEndpoint(this WebApplication app)
     {
-        app.MapPost("/get-face-image/{imageId}", async (
+        app.MapPut("/update-face-name/{imageId}/{imageName}", async (
             [FromServices] IImageService imageProcessService,
             [FromRoute] string imageId,
+            [FromRoute] string imageName,
             [FromServices] ILogger<Program> logger) =>
         {
             try
@@ -19,7 +20,12 @@ public static class GetFaceImageEndpointExtension
                 {
                     return Results.BadRequest("Image id cannot be null or empty");
                 }
-                Response<string> serviceResponse = await imageProcessService.GetFaceImagePath(imageId);
+                if (string.IsNullOrEmpty(imageName))
+                {
+                    return Results.BadRequest("Image name cannot be null or empty");
+                }
+
+                Response<bool> serviceResponse = await imageProcessService.UpdateFaceName(imageId, imageName);
                 if (!serviceResponse.Success)
                     return Results.Problem(new ProblemDetails()
                     {
@@ -28,18 +34,8 @@ public static class GetFaceImageEndpointExtension
                         Detail = serviceResponse.Errors.FirstOrDefault(),
                         Type = serviceResponse.ErrorCode
                     });
-                if (string.IsNullOrEmpty(serviceResponse?.Data))
-                {
-                    return Results.NotFound($"Face image not found with given image id {imageId}");
-                }
-                string imagePath = serviceResponse.Data;
-                if (!File.Exists(imagePath))
-                {
-                    logger.LogInformation("File not exists with {path}", serviceResponse.Data);
-                }
-                byte[] imageBytes = File.ReadAllBytes(imagePath);
-                return Results.File(imageBytes, "image/jpeg");
 
+                return Results.NoContent();
             }
             catch (Exception ex)
             {
@@ -48,7 +44,8 @@ public static class GetFaceImageEndpointExtension
             }
         })
         .DisableAntiforgery()
-        .WithSummary("Get Face Image")
+        .WithSummary("Update Face Name")
+        .WithDescription("Update face name with image id")
         .WithOpenApi();
         return app;
     }

@@ -2,13 +2,11 @@ using Microsoft.AspNetCore.Mvc;
 using Serilog;
 using System.Data;
 using System.Data.SqlClient;
-using WhoIsAPI.Application.Services.ImageProcess;
-using WhoIsAPI.Application.Services.ImageUpload;
+using WhoIsAPI.Application.Services.ImageService;
 using WhoIsAPI.Endpoints;
-using WhoIsAPI.Persistence.Repositories.ImageProcessRepository;
+using WhoIsAPI.Persistence.Repositories.ImageRepository;
 using WhoIsAPI.Workers;
 
-const string facesFolder = "./faces";
 const string imagesFolder = "./images";
 const string faceRecognizeServiceKey = "facerec_service";
 
@@ -40,10 +38,8 @@ builder.Services.AddTransient<IDbConnection>(_ =>
     return new SqlConnection(connectionString);
 });
 
-builder.Services.AddTransient<IImageUploadService, ImageUploadService>();
-
-builder.Services.AddTransient<IImageProcessService, ImageProcessService>();
-builder.Services.AddTransient<IImageProcessRepository, ImageProcessRepository>();
+builder.Services.AddTransient<IImageService, ImageService>();
+builder.Services.AddTransient<IImageRepository, ImageRepository>();
 
 
 builder.Services.Configure<HostOptions>(options =>
@@ -81,13 +77,9 @@ app.AddGetFaceIdsEndpoint();
 
 app.AddGetFaceImageEndpoint();
 
-app.MapGet("/get-files/{isFaceFolder}", ([FromRoute] bool isFaceFolder) =>
-{
-    return Directory.GetFiles(isFaceFolder ? facesFolder : imagesFolder);
-})
-.WithName("Get File List")
-.WithOpenApi();
+app.AddUpdateFaceNameEndpoint();
 
+app.AddGetImageIdsByFaceNameEndpoint();
 
 app.Run();
 

@@ -1,4 +1,4 @@
-﻿using WhoIsAPI.Application.Services.ImageProcess;
+﻿using WhoIsAPI.Application.Services.ImageService;
 using WhoIsAPI.Domain;
 
 namespace WhoIsAPI.Workers;
@@ -28,9 +28,9 @@ public class ImageProcessHostedService : BackgroundService
             try
             {
                 using var scope = _serviceProvider.CreateScope();
-                IImageProcessService imageProcessService =
+                IImageService imageProcessService =
                     scope.ServiceProvider
-                        .GetRequiredService<IImageProcessService>();
+                        .GetRequiredService<IImageService>();
                 Response<bool> imageProcessResponse = await imageProcessService.ProcessImages();
                 _logger.LogInformation("Image process operation complated {@response}", imageProcessResponse);
             }

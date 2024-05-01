@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using WhoIsAPI.Application.Services.ImageProcess;
+using WhoIsAPI.Application.Services.ImageService;
 using WhoIsAPI.Domain;
 using WhoIsAPI.Domain.Models;
 
@@ -10,7 +10,7 @@ public static class GetFaceIdsEndpointExtension
     public static WebApplication AddGetFaceIdsEndpoint(this WebApplication app)
     {
         app.MapGet("/get-face-ids", async (
-            [FromServices] IImageProcessService imageProcessService,
+            [FromServices] IImageService imageProcessService,
             [FromServices] ILogger<Program> logger) =>
         {
             try
@@ -34,7 +34,7 @@ public static class GetFaceIdsEndpointExtension
             }
         })
         .DisableAntiforgery()
-        .WithName("Get Face Ids")
+        .WithSummary("Get Face Ids")
         .WithOpenApi();
         return app;
     }

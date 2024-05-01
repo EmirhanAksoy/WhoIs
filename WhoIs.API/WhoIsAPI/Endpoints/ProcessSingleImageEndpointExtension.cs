@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using WhoIsAPI.Application.Services.ImageProcess;
+using WhoIsAPI.Application.Services.ImageService;
 using WhoIsAPI.Domain;
 
 namespace WhoIsAPI.Endpoints;
@@ -9,7 +9,7 @@ public static class ProcessSingleImageEndpointExtension
     public static WebApplication AddProcessSingleImageEndpoint(this WebApplication app)
     {
         app.MapPost("/process-single-image", async (
-            [FromServices] IImageProcessService imageProcessService,
+            [FromServices] IImageService imageProcessService,
             [FromServices] ILogger<Program> logger) =>
         {
             try
@@ -33,7 +33,7 @@ public static class ProcessSingleImageEndpointExtension
             }
         })
         .DisableAntiforgery()
-        .WithName("Single Image Process")
+        .WithSummary("Single Image Process")
         .WithOpenApi();
         return app;
     }

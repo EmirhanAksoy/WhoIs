@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using WhoIsAPI.Application.Services.ImageUpload;
+using WhoIsAPI.Application.Services.ImageService;
 using WhoIsAPI.Contracts.Requests;
 using WhoIsAPI.Domain;
 
@@ -11,7 +11,7 @@ public static class ImageBulkUploadEndpointExtension
     {
         app.MapPost("/image-bulk-upload", async (
             [FromForm] ImageBulkUploadRequest imageBulkUploadRequest,
-            [FromServices] IImageUploadService imageUploadService,
+            [FromServices] IImageService imageUploadService,
             [FromServices] ILogger<Program> logger) =>
         {
             try
@@ -40,7 +40,7 @@ public static class ImageBulkUploadEndpointExtension
             }
         })
         .DisableAntiforgery()
-        .WithName("Image Bulk Upload With Zip File")
+        .WithSummary("Image Bulk Upload With Zip File")
         .WithOpenApi();
         return app;
     }

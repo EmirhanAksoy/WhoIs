@@ -1,9 +1,9 @@
 ﻿using WhoIsAPI.Domain;
 using WhoIsAPI.Domain.Models;
 
-namespace WhoIsAPI.Persistence.Repositories.ImageProcessRepository;
+namespace WhoIsAPI.Persistence.Repositories.ImageRepository;
 
-public interface IImageProcessRepository
+public interface IImageRepository
 {
     Task<Response<ImageUniqueIdPair>> GetUnprocessedImage();
 
@@ -18,4 +18,10 @@ public interface IImageProcessRepository
     Task<Response<bool>> InsertImagePaths(List<ImageUniqueIdPair> images);
 
     Task<Response<string>> GetFaceImagePath(string imageId);
+
+    Task<Response<bool>> CheckIfFaceNameExists(string imageId, string name);
+
+    Task<Response<bool>> UpdateFaceName(string imageId, string name);
+
+    Task<Response<List<string>>> GetImageIdsByFaceName(string faceNameSearchText);
 }
