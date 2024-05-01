@@ -4,7 +4,7 @@ public class UpdateFaceNameError : IError
 {
     int IError.EventId => (int)ErrorCodes.UpdateFaceNameError;
 
-    string IError.ErrorCode => "UpdateFaceNameError";
+    string IError.ErrorCode => "UpdateFaceNameError_R";
 
     string IError.ErrorMessage => "An error occurred while updating face name";
 }
