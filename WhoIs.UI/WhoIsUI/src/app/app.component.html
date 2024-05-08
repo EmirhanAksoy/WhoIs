@@ -1,7 +1,7 @@
 <ng-container>
   <div class="tabs">
-    <button (click)="selectedTab='faces'">Faces</button>
-    <button (click)="selectedTab='images'">Images</button>
+    <button (click)="selectedTab='faces';getFaceInfos()">Faces</button>
+    <button (click)="selectedTab='images';getFaceInfos()">Images</button>
   </div>
   <h3>{{selectedTab==='faces' ? 'Faces' : 'Images'}}</h3>
   <div *ngIf="selectedTab === 'faces'" class="face-container">
