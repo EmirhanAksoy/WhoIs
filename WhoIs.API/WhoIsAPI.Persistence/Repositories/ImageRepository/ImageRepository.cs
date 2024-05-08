@@ -44,23 +44,6 @@ public class ImageRepository : IImageRepository
         }
     }
 
-    public async Task<Response<string>> GetFaceImagePath(string faceId)
-    {
-        try
-        {
-            string facePath = (await _dbConnection.QueryFirstOrDefaultAsync<string>("SELECT FacePath FROM Faces WHERE FaceId=@FaceId", new { FaceId = faceId })) ?? string.Empty;
-            if (string.IsNullOrEmpty(facePath))
-            {
-                facePath = facePath.Replace(@"/root", ".");
-            }
-            return Response<string>.SuccessResult(facePath);
-        }
-        catch (Exception ex)
-        {
-            return Response<string>.HandleException<FaceImagePathRetrieveError>(ex, _logger);
-        }
-    }
-
     public async Task<Response<List<string>>> GetImageIdsByFaceName(string faceNameSearchText)
     {
         try
@@ -75,6 +58,26 @@ public class ImageRepository : IImageRepository
         catch (Exception ex)
         {
             return Response<List<string>>.HandleException<GetImageIdsByFaceNameError>(ex, _logger);
+        }
+    }
+
+    public async Task<Response<string>> GetImagePath(string imageId, bool isFaceImage)
+    {
+        try
+        {
+            string query = isFaceImage ? "SELECT FacePath FROM Faces WHERE FaceId=@ImageId" : "SELECT ImagePath FROM Images WHERE ImageId=@ImageId";
+
+            string imagePath = (await _dbConnection.QueryFirstOrDefaultAsync<string>(query, new { ImageId = imageId })) ?? string.Empty;
+
+            if (!string.IsNullOrEmpty(imagePath) && isFaceImage)
+            {
+                imagePath = imagePath.Replace(@"/root", ".");
+            }
+            return Response<string>.SuccessResult(imagePath);
+        }
+        catch (Exception ex)
+        {
+            return Response<string>.HandleException<FaceImagePathRetrieveError>(ex, _logger);
         }
     }
 
@@ -175,7 +178,7 @@ public class ImageRepository : IImageRepository
         }
         catch (Exception ex)
         {
-            return Response<bool>.HandleException<ImageDeleteError>(ex,_logger);
+            return Response<bool>.HandleException<ImageDeleteError>(ex, _logger);
         }
     }
 }

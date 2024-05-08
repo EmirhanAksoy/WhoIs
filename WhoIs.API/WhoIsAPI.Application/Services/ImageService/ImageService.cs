@@ -33,11 +33,6 @@ public class ImageService : IImageService
         return _imageProcessRepository.GetFaces();
     }
 
-    public Task<Response<string>> GetFaceImagePath(string imageId)
-    {
-        return _imageProcessRepository.GetFaceImagePath(imageId);
-    }
-
     public async Task<Response<bool>> ProcessImages()
     {
         try
@@ -79,7 +74,7 @@ public class ImageService : IImageService
             _logger.LogInformation("Image process service response {@response}", imageProcessResponse);
             if (imageProcessResponse is null)
             {
-                return Response<bool>.HandleErrorResult<ImageProcessServiceError>(_logger, "Image process service failed {responseBody}",responseBody);
+                return Response<bool>.HandleErrorResult<ImageProcessServiceError>(_logger, "Image process service failed {responseBody}", responseBody);
             }
 
             if (imageProcessResponse.Count == 0)
@@ -114,7 +109,7 @@ public class ImageService : IImageService
 
             if (isNameInUseResponse.Data)
             {
-                return Response<bool>.HandleErrorResult<FaceNameAlreadyInUseError>(_logger,"{Name} is already in use in another face image",name);
+                return Response<bool>.HandleErrorResult<FaceNameAlreadyInUseError>(_logger, "{Name} is already in use in another face image", name);
             }
             return await _imageProcessRepository.UpdateFaceName(imageId, name);
         }
@@ -129,6 +124,10 @@ public class ImageService : IImageService
         return _imageProcessRepository.GetImageIdsByFaceName(faceNameSearchText);
     }
 
+    public Task<Response<string>> GetImagePath(string imageId, bool isFaceImage)
+    {
+        return _imageProcessRepository.GetImagePath(imageId, isFaceImage);  
+    }
     public async Task<Response<bool>> UploadImages(IFormFile zipFile, string imageFolderPath)
     {
         try
@@ -149,7 +148,7 @@ public class ImageService : IImageService
                 await zipFile.CopyToAsync(fileStream);
             }
 
-            List<string> imagePaths = [];
+            List<ImagePathPair> images = [];
             using (var archive = ZipFile.OpenRead(filePath))
             {
                 foreach (var entry in archive.Entries)
@@ -158,15 +157,16 @@ public class ImageService : IImageService
                     {
                         if (entry.FullName.IsImageFile())
                         {
-                            var guidFileName = Guid.NewGuid().ToString() + Path.GetExtension(entry.FullName);
-                            var imagePath = Path.Combine(imageFolderPath, guidFileName);
+
+                            string imageId = Guid.NewGuid().ToString();
+                            string guidFileName = imageId + Path.GetExtension(entry.FullName);
+                            string imagePath = Path.Combine(imageFolderPath, guidFileName);
                             entry.ExtractToFile(imagePath);
-                            imagePaths.Add(imagePath);
+                            images.Add(new(imageId, imagePath));
                         }
                     }
                 }
             }
-            List<ImagePathPair> images = imagePaths.ConvertAll(imagePath => new ImagePathPair(Guid.NewGuid().ToString(), imagePath));
 
             if (File.Exists(filePath))
                 File.Delete(filePath);

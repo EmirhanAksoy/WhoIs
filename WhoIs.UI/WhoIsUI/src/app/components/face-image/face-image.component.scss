@@ -12,3 +12,16 @@
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
     }
 }
+
+.image-container-square {
+    width: 200px;
+    height: 200px;
+    overflow: hidden;
+    margin: 20px;
+
+    img {
+        width: 100%;
+        height: auto;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    }
+}

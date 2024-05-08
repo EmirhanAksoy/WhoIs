@@ -1,0 +1,12 @@
+<input type="text" [formControl]="searchControl" placeholder="Search.." />
+
+<div>
+    <div class="image-card-container " *ngIf="imageIds.length">
+        <app-face-image *ngFor="let imageId of imageIds" [imageId]="imageId" [isFaceImage]="false">
+
+        </app-face-image>
+    </div>
+    <div *ngIf="!imageIds.length">
+        No result found.
+    </div>
+</div>

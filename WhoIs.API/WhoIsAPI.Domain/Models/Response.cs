@@ -44,12 +44,12 @@ public class Response<T>
     {
         return new Response<T>(data);
     }
-    
+
     public static Response<T> HandleErrorResult<TError>(ILogger logger, string logMessage, params object[] logParams) where TError : class, IError, new()
     {
         TError error = new();
         string errorLog = "{ErrorCode} {ErrorMessage}";
-        logger.LogError(error.EventId, $"{errorLog} {logMessage}", error.ErrorCode, error.ErrorMessage, logParams);
+        logger.LogError(eventId: error.EventId, message: $"{errorLog} {logMessage}", error.ErrorCode, error.ErrorMessage, logParams);
         return new Response<T>(error.ErrorMessage, error.ErrorCode);
     }
 

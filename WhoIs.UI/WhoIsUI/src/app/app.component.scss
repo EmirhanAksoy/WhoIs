@@ -1,3 +1,7 @@
 .face-container {
-    display: ruby-text ;
+    display: ruby-text;
+    .container-sub {
+        display: flex;
+        flex-wrap: wrap;
+    }
 }

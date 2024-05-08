@@ -19,10 +19,16 @@ export class ImageService {
     return this.httpClient.get<ApiResponse<FaceInfo[]>>(`${this.apiUri}/get-face-ids`);
   }
 
-
-  getFaceImageAsBlob(imageId: string): Observable<HttpResponse<Blob>> {
-    return this.httpClient.post(`${this.apiUri}/get-face-image/${imageId}`, null, { responseType: 'blob', observe: 'response' })
+  getImageAsBlob(imageId: string, isFaceImage: boolean): Observable<HttpResponse<Blob>> {
+    return this.httpClient.post(`${this.apiUri}/get-image/${imageId}?isFaceImage=${isFaceImage}`, null, { responseType: 'blob', observe: 'response' })
   }
 
+  updateFaceName(faceId: string, name: string): Observable<ApiResponse<boolean>> {
+    return this.httpClient.put<ApiResponse<boolean>>(`${this.apiUri}/update-face-name/${faceId}/${name}`, null)
+  }
+
+  getImagePathsWithFaceName(searchText: string): Observable<ApiResponse<string[]>> {
+    return this.httpClient.get<ApiResponse<string[]>>(`${this.apiUri}/imageIds/face/${searchText}`);
+  }
 
 }

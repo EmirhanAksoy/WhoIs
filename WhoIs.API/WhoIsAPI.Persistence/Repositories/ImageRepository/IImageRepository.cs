@@ -9,9 +9,9 @@ public interface IImageRepository
 
     Task<Response<List<FaceInfo>>> GetFaces();
 
-    Task<Response<string>> GetFaceImagePath(string faceId);
-
     Task<Response<List<string>>> GetImageIdsByFaceName(string faceNameSearchText);
+
+    Task<Response<string>> GetImagePath(string imageId, bool isFaceImage);
 
     Task<Response<bool>> CheckIfFaceNameExists(string faceId, string name);
 
@@ -24,5 +24,4 @@ public interface IImageRepository
     Task<Response<bool>> UpdateFaceName(string faceId, string name);
 
     Task<Response<bool>> DeleteImage(string imageId);
-
 }

@@ -8,10 +8,11 @@ public static class GetFaceImageEndpointExtension
 {
     public static WebApplication AddGetFaceImageEndpoint(this WebApplication app)
     {
-        app.MapPost("/get-face-image/{imageId}", async (
+        app.MapPost("/get-image/{imageId}", async (
             [FromServices] IImageService imageProcessService,
+            [FromServices] ILogger<Program> logger,
             [FromRoute] string imageId,
-            [FromServices] ILogger<Program> logger) =>
+            [FromQuery] bool isFaceImage = true) =>
         {
             try
             {
@@ -19,26 +20,26 @@ public static class GetFaceImageEndpointExtension
                 {
                     return Results.BadRequest("Image id cannot be null or empty");
                 }
-                Response<string> serviceResponse = await imageProcessService.GetFaceImagePath(imageId);
-                if (!serviceResponse.Success)
+                
+                Response<string> imagePathResponse =  await imageProcessService.GetImagePath(imageId, isFaceImage);
+                if (!imagePathResponse.Success)
                     return Results.Problem(new ProblemDetails()
                     {
                         Status = StatusCodes.Status400BadRequest,
-                        Title = serviceResponse.ErrorCode,
-                        Detail = serviceResponse.Errors.FirstOrDefault(),
-                        Type = serviceResponse.ErrorCode
+                        Title = imagePathResponse.ErrorCode,
+                        Detail = imagePathResponse.Errors.FirstOrDefault(),
+                        Type = imagePathResponse.ErrorCode
                     });
-                if (string.IsNullOrEmpty(serviceResponse?.Data))
-                {
-                    return Results.NotFound($"Face image not found with given image id {imageId}");
-                }
-                string imagePath = serviceResponse.Data;
+
+
+                string imagePath = imagePathResponse.Data ?? string.Empty;
                 if (!File.Exists(imagePath))
                 {
-                    logger.LogInformation("File not exists with {path}", serviceResponse.Data);
+                    logger.LogError("Face image not exists with {imageId}", imageId);
+                    return Results.BadRequest($"Face image not exists with given image id {imageId}");
                 }
-                byte[] imageBytes = File.ReadAllBytes(imagePath);
-                return Results.File(imageBytes, "image/jpeg");
+                byte[] imageBytes = await File.ReadAllBytesAsync(imagePath);
+                return Results.File(imageBytes, "image/png");
 
             }
             catch (Exception ex)
@@ -48,7 +49,7 @@ public static class GetFaceImageEndpointExtension
             }
         })
         .DisableAntiforgery()
-        .WithSummary("Get Face Image")
+        .WithSummary("Get Image")
         .WithOpenApi();
         return app;
     }

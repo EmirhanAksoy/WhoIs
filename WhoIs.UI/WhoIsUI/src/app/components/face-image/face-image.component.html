@@ -1,4 +1,4 @@
-<div class="image-container" *ngIf="imageUrl">
+<div [ngClass]="isFaceImage ? 'image-container' : 'image-container-square'" *ngIf="imageUrl">
     <img [src]="imageUrl" [alt]="'Invalid Image'" />
 </div>
-<p><b class="">Name</b> : {{ faceInfo.faceName || 'Unknown'}}</p>
+<p *ngIf="isFaceImage" (dblclick)="editFaceName()"><b class="">Name</b> : {{ imageName || 'Unknown'}}</p>
