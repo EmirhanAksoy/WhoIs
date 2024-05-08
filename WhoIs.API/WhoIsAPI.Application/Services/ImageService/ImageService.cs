@@ -42,16 +42,15 @@ public class ImageService : IImageService
     {
         try
         {
-            // select 1 image which is not processed and not softly deleted
 
-            Response<ImageUniqueIdPair> imageUniqueIdPairResponse = await _imageProcessRepository.GetUnprocessedImage();
+            Response<ImagePathPair> imagePathPairResponse = await _imageProcessRepository.GetUnprocessedImage();
 
-            if (!imageUniqueIdPairResponse.Success)
+            if (!imagePathPairResponse.Success)
             {
-                return Response<bool>.MapError(imageUniqueIdPairResponse);
+                return Response<bool>.MapError(imagePathPairResponse);
             }
 
-            if (imageUniqueIdPairResponse.Data is null)
+            if (imagePathPairResponse.Data is null)
             {
                 _logger.LogInformation("No image record found in database");
 
@@ -59,13 +58,13 @@ public class ImageService : IImageService
             }
 
 
-            if (!File.Exists(imageUniqueIdPairResponse.Data.ImagePath))
+            if (!File.Exists(imagePathPairResponse.Data.ImagePath))
             {
-                Response<bool> imageDeleteResponse = await _imageProcessRepository.DeleteImage(imageUniqueIdPairResponse.Data.UniqueId);
-                return Response<bool>.HandleErrorResult<ImageNotFoundError>(_logger, "Image file is not exists {@image} {@response} ", imageUniqueIdPairResponse.Data, imageDeleteResponse);
+                Response<bool> imageDeleteResponse = await _imageProcessRepository.DeleteImage(imagePathPairResponse.Data.ImageId);
+                return Response<bool>.HandleErrorResult<ImageNotFoundError>(_logger, "Image file is not exists {@image} {@response} ", imagePathPairResponse.Data, imageDeleteResponse);
             }
 
-            byte[] imageBytes = File.ReadAllBytes(imageUniqueIdPairResponse.Data.ImagePath);
+            byte[] imageBytes = File.ReadAllBytes(imagePathPairResponse.Data.ImagePath);
 
             // send image to the external image process service
 
@@ -85,19 +84,19 @@ public class ImageService : IImageService
 
             if (imageProcessResponse.Count == 0)
             {
-                _logger.LogInformation("No face found in this image {@imageInfo}", imageUniqueIdPairResponse);
+                _logger.LogInformation("No face found in this image {@imageInfo}", imagePathPairResponse);
 
-                return await _imageProcessRepository.UpdateImageAsProcessed(imageUniqueIdPairResponse.Data.UniqueId);
+                return await _imageProcessRepository.UpdateImageAsProcessed(imagePathPairResponse.Data.ImageId);
             }
 
-            List<ImageFaceMapping> imageFaceMappings = imageProcessResponse.Faces.ConvertAll(x => new ImageFaceMapping(x.Id, imageUniqueIdPairResponse?.Data?.UniqueId ?? string.Empty));
+            List<ImageFaceMapping> imageFaceMappings = imageProcessResponse.Faces.ConvertAll(x => new ImageFaceMapping(x.Id, imagePathPairResponse?.Data?.ImageId ?? string.Empty));
 
             Response<bool> imageFaceMapInsertResponse = await _imageProcessRepository.InsertImageFaceMappings(imageFaceMappings);
 
             if (!imageFaceMapInsertResponse.Success)
                 return imageFaceMapInsertResponse;
 
-            return await _imageProcessRepository.UpdateImageAsProcessed(imageUniqueIdPairResponse.Data.UniqueId);
+            return await _imageProcessRepository.UpdateImageAsProcessed(imagePathPairResponse.Data.ImageId);
         }
         catch (Exception ex)
         {
@@ -167,7 +166,7 @@ public class ImageService : IImageService
                     }
                 }
             }
-            List<ImageUniqueIdPair> images = imagePaths.ConvertAll(imagePath => new ImageUniqueIdPair(Guid.NewGuid().ToString(), imagePath));
+            List<ImagePathPair> images = imagePaths.ConvertAll(imagePath => new ImagePathPair(Guid.NewGuid().ToString(), imagePath));
 
             if (File.Exists(filePath))
                 File.Delete(filePath);

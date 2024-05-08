@@ -17,7 +17,7 @@ GO
 -- Create Faces table
 CREATE TABLE Faces (
     Id INT IDENTITY(1,1) PRIMARY KEY,
-    UniqueId NVARCHAR(255) UNIQUE NOT NULL,
+    FaceId NVARCHAR(255) UNIQUE NOT NULL,
     FacePath VARCHAR(MAX) NOT NULL,
     FaceName VARCHAR(500) NOT NULL DEFAULT(''),
     IsActive BIT DEFAULT(1)
@@ -27,7 +27,7 @@ CREATE TABLE Faces (
 -- Create Image Table
 CREATE TABLE Images (
     Id INT IDENTITY(1,1) PRIMARY KEY,
-    UniqueId NVARCHAR(255) UNIQUE NOT NULL,
+    ImageId NVARCHAR(255) UNIQUE NOT NULL,
     ImagePath VARCHAR(MAX) NOT NULL,
     IsProcessed BIT DEFAULT(0),
     IsActive BIT DEFAULT(1)

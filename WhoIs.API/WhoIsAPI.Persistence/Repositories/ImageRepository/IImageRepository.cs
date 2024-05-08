@@ -5,23 +5,23 @@ namespace WhoIsAPI.Persistence.Repositories.ImageRepository;
 
 public interface IImageRepository
 {
-    Task<Response<ImageUniqueIdPair>> GetUnprocessedImage();
+    Task<Response<ImagePathPair>> GetUnprocessedImage();
 
     Task<Response<List<FaceInfo>>> GetFaces();
 
-    Task<Response<string>> GetFaceImagePath(string imageId);
+    Task<Response<string>> GetFaceImagePath(string faceId);
 
     Task<Response<List<string>>> GetImageIdsByFaceName(string faceNameSearchText);
 
-    Task<Response<bool>> CheckIfFaceNameExists(string imageId, string name);
+    Task<Response<bool>> CheckIfFaceNameExists(string faceId, string name);
 
     Task<Response<bool>> InsertImageFaceMappings(List<ImageFaceMapping> imageFaceMappings);
 
-    Task<Response<bool>> InsertImagePaths(List<ImageUniqueIdPair> images);
+    Task<Response<bool>> InsertImagePaths(List<ImagePathPair> images);
 
     Task<Response<bool>> UpdateImageAsProcessed(string imageId);
 
-    Task<Response<bool>> UpdateFaceName(string imageId, string name);
+    Task<Response<bool>> UpdateFaceName(string faceId, string name);
 
     Task<Response<bool>> DeleteImage(string imageId);
 
