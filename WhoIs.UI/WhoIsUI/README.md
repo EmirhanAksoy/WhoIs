@@ -51,7 +51,3 @@ If you need to customize any configurations for the Angular project, you can mod
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
-
----
-
-Feel free to customize the README further to fit your project needs. Let me know if there's anything else I can assist you with!
