@@ -1,27 +1,57 @@
-# WhoIsUI
+# WhoIs.UI Docker Image
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 14.0.0.
+This repository contains the necessary files to create a Docker image for the WhoIs.UI Angular 14 project.
 
-## Development server
+## Prerequisites
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+- Docker installed on your system. If Docker is not installed, you can download it from [Docker's official website](https://www.docker.com/get-started).
 
-## Code scaffolding
+## Building the Docker Image
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+To build the Docker image, follow these steps:
 
-## Build
+1. Clone this repository to your local machine:
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+    ```bash
+    git clone https://github.com/EmirhanAksoy/WhoIs.git
+    ```
 
-## Running unit tests
+2. Navigate to the cloned directory:
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+    ```bash
+    cd .\WhoIs.UI\WhoIsUI
+    ```
 
-## Running end-to-end tests
+3. Build the Docker image using the provided Dockerfile:
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
+    ```bash
+    docker build -t whoisui .
+    ```
 
-## Further help
+    This command will build the Docker image with the tag `whoisui`.
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+## Running the Docker Container
+
+Once the Docker image is built, you can run a Docker container using the following command:
+
+```bash
+docker run -d -p 4000:80 --name whoisui-container whoisui
+```
+
+This command will start a container named `whoisui-container` from the `whoisui` image, mapping port 4000 on the host to port 80 on the container. The Angular project will then be accessible at `http://localhost:4000`.
+
+## Accessing the WhoIs.UI
+
+After the container is running, you can access the WhoIs.UI by visiting [http://localhost:4000](http://localhost:4000) in your web browser.
+
+## Additional Configuration
+
+If you need to customize any configurations for the Angular project, you can modify the relevant configuration files before building the Docker image.
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
+
+---
+
+Feel free to customize the README further to fit your project needs. Let me know if there's anything else I can assist you with!
