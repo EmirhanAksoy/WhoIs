@@ -22,6 +22,7 @@ The WhoIs application utilizes the following technologies:
   - MSSQL (Database)
   - Python (Face Recognition Service)
   - Docker
+  - Seq
 
 - **Frontend**:
   - Angular 14
