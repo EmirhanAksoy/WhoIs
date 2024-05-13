@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Mvc;
 using Serilog;
 using System.Data;
 using System.Data.SqlClient;
@@ -23,6 +25,7 @@ Serilog.ILogger logger = new LoggerConfiguration()
         .CreateLogger();
 Log.Logger = logger;
 
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddHttpClient(faceRecognizeServiceKey, configuration =>
@@ -65,6 +68,31 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseCors("AllowAll");
+
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+        context.Response.ContentType = "application/json";
+
+        var exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
+
+        if (exceptionHandlerPathFeature?.Error is not null)
+        {
+            var problemDetails = new ProblemDetails
+            {
+                Title = "An error occurred while processing your request",
+                Detail = exceptionHandlerPathFeature.Error.Message,
+                Status = StatusCodes.Status500InternalServerError,
+                Type = "https://datatracker.ietf.org/doc/html/rfc7231#section-6.6.1",
+                Instance = context.Request.Path
+            };
+
+            await context.Response.WriteAsJsonAsync(problemDetails);
+        }
+    });
+});
 
 app.AddImageBulkUploadEndpoint();
 

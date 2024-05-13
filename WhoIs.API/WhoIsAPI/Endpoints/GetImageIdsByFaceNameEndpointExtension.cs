@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using WhoIsAPI.Application.Services.ImageService;
 using WhoIsAPI.Domain;
+using WhoIsAPI.Domain.Extensions;
 
 namespace WhoIsAPI.Endpoints;
 
@@ -10,33 +11,21 @@ public static class GetImageIdsByFaceNameEndpointExtension
     {
         app.MapGet("/imageIds/face/{faceNameSearchText}", async (
             [FromServices] IImageService imageProcessService,
+            [FromServices] IHttpContextAccessor httpContextAccessor,
             [FromRoute] string faceNameSearchText,
             [FromServices] ILogger<Program> logger) =>
         {
-            try
-            {
-                if (string.IsNullOrEmpty(faceNameSearchText))
-                {
-                    return Results.Ok(Response<List<string>>.SuccessResult([]));
-                }
 
-                Response<List<string>> serviceResponse = await imageProcessService.GetImageIdsByFaceName(faceNameSearchText);
-                if (!serviceResponse.Success)
-                    return Results.Problem(new ProblemDetails()
-                    {
-                        Status = StatusCodes.Status400BadRequest,
-                        Title = serviceResponse.ErrorCode,
-                        Detail = serviceResponse.Errors.FirstOrDefault(),
-                        Type = serviceResponse.ErrorCode
-                    });
+            if (string.IsNullOrEmpty(faceNameSearchText))
+                return Results.Ok(Response<List<string>>.SuccessResult([]));
 
-                return Results.Ok(serviceResponse);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Get image ids with face name failed");
-                return Results.Problem(title: "Get image ids with face name failed", detail: ex.Message, statusCode: StatusCodes.Status500InternalServerError);
-            }
+            Response<List<string>> serviceResponse = await imageProcessService.GetImageIdsByFaceName(faceNameSearchText);
+
+            if (!serviceResponse.Success)
+                return Results.Problem(serviceResponse.ToBadRequestProblemDetails(httpContextAccessor.HttpContext?.Request.Path ?? "/imageIds/face/{faceNameSearchText}"));
+
+            return Results.Ok(serviceResponse);
+
         })
         .DisableAntiforgery()
         .WithSummary("Get Image Ids With Face Name")

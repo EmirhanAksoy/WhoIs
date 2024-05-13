@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using WhoIsAPI.Application.Services.ImageService;
 using WhoIsAPI.Domain;
+using WhoIsAPI.Domain.Extensions;
 
 namespace WhoIsAPI.Endpoints;
 
@@ -10,43 +11,51 @@ public static class GetFaceImageEndpointExtension
     {
         app.MapPost("/get-image/{imageId}", async (
             [FromServices] IImageService imageProcessService,
+            [FromServices] IHttpContextAccessor httpContextAccessor,
             [FromServices] ILogger<Program> logger,
             [FromRoute] string imageId,
             [FromQuery] bool isFaceImage = true) =>
         {
-            try
+
+            string instance = httpContextAccessor.HttpContext?.Request?.Path ?? "/get-image/{imageId}";
+
+            if (string.IsNullOrEmpty(imageId))
             {
-                if (string.IsNullOrEmpty(imageId))
+                return Results.Problem(new ProblemDetails()
                 {
-                    return Results.BadRequest("Image id cannot be null or empty");
-                }
-                
-                Response<string> imagePathResponse =  await imageProcessService.GetImagePath(imageId, isFaceImage);
-                if (!imagePathResponse.Success)
-                    return Results.Problem(new ProblemDetails()
-                    {
-                        Status = StatusCodes.Status400BadRequest,
-                        Title = imagePathResponse.ErrorCode,
-                        Detail = imagePathResponse.Errors.FirstOrDefault(),
-                        Type = imagePathResponse.ErrorCode
-                    });
-
-
-                string imagePath = imagePathResponse.Data ?? string.Empty;
-                if (!File.Exists(imagePath))
-                {
-                    logger.LogError("Face image not exists with {imageId}", imageId);
-                    return Results.BadRequest($"Face image not exists with given image id {imageId}");
-                }
-                byte[] imageBytes = await File.ReadAllBytesAsync(imagePath);
-                return Results.File(imageBytes, "image/png");
-
+                    Status = StatusCodes.Status400BadRequest,
+                    Title = "Image id validation error",
+                    Detail = "Image id cannot be null or empty",
+                    Type = "https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.1",
+                    Instance = instance
+                });
             }
-            catch (Exception ex)
+
+            Response<string> imagePathResponse = await imageProcessService.GetImagePath(imageId, isFaceImage);
+
+            if (!imagePathResponse.Success)
+                return Results.Problem(imagePathResponse.ToBadRequestProblemDetails(instance));
+
+            string imagePath = imagePathResponse.Data ?? string.Empty;
+
+            if (string.IsNullOrEmpty(imagePath) || !File.Exists(imagePath))
             {
-                logger.LogError(ex, "Get face image failed");
-                return Results.Problem(title: "Get face image failed", detail: ex.Message, statusCode: StatusCodes.Status500InternalServerError);
+                logger.LogError("Face image not exists with {imageId}", imageId);
+
+                return Results.Problem(new ProblemDetails()
+                {
+                    Status = StatusCodes.Status400BadRequest,
+                    Title = "Image not exists",
+                    Detail = $"Face image not exists with given image id {imageId}",
+                    Type = "https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.1",
+                    Instance = instance
+                });
             }
+
+            byte[] imageBytes = await File.ReadAllBytesAsync(imagePath);
+            return Results.File(imageBytes, "image/png");
+
+
         })
         .DisableAntiforgery()
         .WithSummary("Get Image")
