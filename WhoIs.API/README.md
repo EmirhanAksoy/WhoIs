@@ -52,6 +52,3 @@ If you need to customize any configurations for the API, you can modify the `app
 
 This project is licensed under the [MIT License](LICENSE).
 
----
-
-Feel free to adjust or expand upon this README as needed for your project! Let me know if you need further assistance.
