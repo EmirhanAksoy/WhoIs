@@ -32,11 +32,11 @@ export class FaceImageComponent implements OnInit {
   editFaceName(): void {
     const faceName = prompt('Enter face name', '');
     if (!faceName) {
-      prompt('Face name cannot be empty.')
       return;
     }
     this.imageService.updateFaceName(this.imageId, faceName).subscribe(data => {
       this.imageName = faceName;
+      this.imageService.faceNameUpdatedEvent.next();
       alert('Face name updated successfully.')
     }, error => {
       alert('An error occured while updating face name');

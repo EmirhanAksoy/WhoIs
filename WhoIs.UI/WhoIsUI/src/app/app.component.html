@@ -1,10 +1,15 @@
 <ng-container>
   <div class="tabs">
-    <button (click)="selectedTab='faces';getFaceInfos()">Faces</button>
-    <button (click)="selectedTab='images';getFaceInfos()">Images</button>
+    <button class="tab-button" (click)="selectedTab='faces';getFaceInfos()"
+      [ngClass]="{'active':selectedTab==='faces'}">Faces</button>
+    <button class="tab-button" (click)="selectedTab='images';getFaceInfos()"
+      [ngClass]="{'active':selectedTab!=='faces'}">Images</button>
   </div>
-  <h3>{{selectedTab==='faces' ? 'Faces' : 'Images'}}</h3>
+  <h2>{{selectedTab==='faces' ? 'Faces' : 'Images'}}</h2>
+  <hr />
+  <small *ngIf="selectedTab==='faces'"> Double Click the Face to Personalize Name</small>
   <div *ngIf="selectedTab === 'faces'" class="face-container">
+
     <div class="container-sub" *ngIf="faceInfos.length">
       <div *ngFor="let faceInfo of faceInfos">
         <app-face-image [imageId]="faceInfo.faceId" [imageName]="faceInfo.faceName" [isFaceImage]="true">

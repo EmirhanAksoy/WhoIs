@@ -1,4 +1,4 @@
-<input type="text" [formControl]="searchControl" placeholder="Search.." />
+<input style="margin-top: 10px;" type="text" [formControl]="searchControl" placeholder="Search.." />
 
 <div>
     <div class="image-card-container " *ngIf="imageIds.length">
@@ -6,7 +6,7 @@
 
         </app-face-image>
     </div>
-    <div *ngIf="!imageIds.length">
-        No result found.
+    <div *ngIf="!imageIds.length" style="margin-top: 10px;">
+       <small> No result found.</small>
     </div>
 </div>

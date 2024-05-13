@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment'
 import { HttpClient, HttpResponse } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import { FaceInfo } from '../models/face-info.model';
 import { ApiResponse } from '../models/api.response.model';
 
@@ -9,8 +9,8 @@ import { ApiResponse } from '../models/api.response.model';
   providedIn: 'root'
 })
 export class ImageService {
-
   apiUri: string = '';
+  faceNameUpdatedEvent : Subject<void> = new Subject<void>();
   constructor(private httpClient: HttpClient) {
     this.apiUri = environment.apiUri;
   }

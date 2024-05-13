@@ -5,3 +5,12 @@
         flex-wrap: wrap;
     }
 }
+
+.tab-button {
+    margin: 5px;
+    border: none;
+    padding: 15px;
+    &.active {
+        background-color: dimgray;
+    }
+}

@@ -16,7 +16,10 @@ export class AppComponent implements OnInit {
 
   }
   ngOnInit(): void {
-    this.getFaceInfos()
+    this.getFaceInfos();
+    this.imageService.faceNameUpdatedEvent.subscribe(() => {
+      this.getFaceInfos();
+    });
   }
 
   getFaceInfos() {
