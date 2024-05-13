@@ -50,6 +50,21 @@ After creating all Docker images for the components, you can run the entire appl
 docker-compose up
 ```
 
+## Uploading Images as a Zip File
+
+To upload a list of images as a zip file, you can use CURL. Here's an example CURL command:
+
+```bash
+curl -X 'POST' \
+  'http://localhost:32787/image-bulk-upload' \
+  -H 'accept: */*' \
+  -H 'Content-Type: multipart/form-data' \
+  -F 'zipFile=@Family.zip;type=application/x-zip-compressed'
+```
+
+![Alt Text](https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMXc5c3AwamZyMG53ZXN3eXk2emJ0c3pqZXY1bWJlMmQ2Z215M2k0ayZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/p5jCcrjNBUDK2cJDKG/source.gif)
+
+
 This command will start all the containers required for the WhoIs application, including the backend, frontend, database, and face recognition service.
 
 ## Contributing
